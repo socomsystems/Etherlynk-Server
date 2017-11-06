@@ -23,7 +23,6 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="org.jivesoftware.util.*" %>
 <%@ page import="java.net.UnknownHostException" %>
-<%@ page import="org.xmpp.packet.JID" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -114,6 +113,29 @@
         final String server = request.getParameter( "server" );
         final String outboundproxy = request.getParameter( "outboundproxy" );
         final String iceServers = request.getParameter( "iceservers" );
+
+        final boolean startaudioonly = ParamUtils.getBooleanParameter( request, "startaudioonly" );
+
+        final String startaudiomuted = request.getParameter( "startaudiomuted" );
+        if ( startaudiomuted != null && !startaudiomuted.isEmpty() )
+        {
+            try {
+                Integer.parseInt( startaudiomuted );
+            } catch (NumberFormatException ex) {
+                errors.put( "startaudiomuted", "Cannot parse value as integer value." );
+            }
+        }
+
+        final String startvideomuted = request.getParameter( "startvideomuted" );
+        if ( startvideomuted != null && !startvideomuted.isEmpty() )
+        {
+            try {
+                Integer.parseInt( startvideomuted );
+            } catch (NumberFormatException ex) {
+                errors.put( "startvideomuted", "Cannot parse value as integer value." );
+            }
+        }
+
         final boolean useIPv6 = ParamUtils.getBooleanParameter( request, "useipv6" );
         final boolean useNicks = ParamUtils.getBooleanParameter( request, "usenicks" );
         final String resolution = request.getParameter( "resolution" );
@@ -142,7 +164,6 @@
 
         final String focuspassword = request.getParameter( "focuspassword" );
         final String hqVoice = request.getParameter( "hqVoice" );
-        final boolean globalIntercom = ParamUtils.getBooleanParameter( request, "globalIntercom" );
 
         int channelLastN = -1;
         try {
@@ -177,6 +198,9 @@
             JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.allow.direct.sip", Boolean.toString( allowdirectsip ) );
             JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.sip.hq.voice", hqVoice );
 
+            ofmeetConfig.setStartAudioOnly( startaudioonly );
+            ofmeetConfig.setStartAudioMuted( startaudiomuted == null || startaudiomuted.isEmpty() ? null : Integer.parseInt( startaudiomuted ));
+            ofmeetConfig.setStartVideoMuted( startvideomuted == null || startvideomuted.isEmpty() ? null : Integer.parseInt( startvideomuted ));
             ofmeetConfig.setResolution( Integer.parseInt( resolution ) );
             ofmeetConfig.setLocalNATAddress( localAddress );
             ofmeetConfig.setPublicNATAddress( publicAddress );
@@ -185,8 +209,6 @@
             ofmeetConfig.setSimulcast( simulcast );
             ofmeetConfig.setAdaptiveSimulcast( adaptivesimulcast );
             ofmeetConfig.setFocusPassword( focuspassword );
-
-            container.configureGlobalIntercom( globalIntercom );
 
             container.populateJitsiSystemPropertiesWithJivePropertyValues();
 
@@ -272,6 +294,35 @@
                            placeholder="{ 'iceServers': [{ 'url': 'stun:stun.l.google.com:19302' }] }">
                 </td>
             </tr>
+        </table>
+
+        <p style="margin-top: 2em"><fmt:message key="config.page.configuration.ofmeet.audioonly.description"/></p>
+        <table cellpadding="3" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td nowrap colspan="2">
+                    <input type="checkbox" name="startaudioonly" ${ofmeetConfig.startAudioOnly ? "checked" : ""}>
+                    <fmt:message key="config.page.configuration.ofmeet.audioonly"/>
+                </td>
+            </tr>
+        </table>
+
+        <p style="margin-top: 2em"><fmt:message key="config.page.configuration.ofmeet.startaudiomuted.description"/></p>
+        <table cellpadding="3" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td align="left" width="400"><fmt:message key="config.page.configuration.ofmeet.startaudiomuted"/>:</td>
+                <td><input type="text" size="10" maxlength="5" name="startaudiomuted" value="${ofmeetConfig.startAudioMuted}"></td>
+            </tr>
+        </table>
+
+        <p style="margin-top: 2em"><fmt:message key="config.page.configuration.ofmeet.startvideomuted.description"/></p>
+        <table cellpadding="3" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td align="left" width="400"><fmt:message key="config.page.configuration.ofmeet.startvideomuted"/>:</td>
+                <td><input type="text" size="10" maxlength="5" name="startvideomuted" value="${ofmeetConfig.startVideoMuted}"></td>
+            </tr>
+        </table>
+
+        <table>
             <tr>
                 <td align="left" width="200"><fmt:message key="config.page.configuration.ofmeet.resolution"/>:</td>
                 <td><input type="text" size="10" maxlength="100" name="resolution" value="${ofmeetConfig.resolution}"></td>
@@ -283,12 +334,6 @@
             <tr>
                 <td align="left" width="200"><fmt:message key="config.page.configuration.ofmeet.video.bandwidth"/>:</td>
                 <td><input type="text" size="10" maxlength="100" name="videobandwidth" value="${admin:getIntProperty("org.jitsi.videobridge.ofmeet.video.bandwidth", 512)}"></td>
-            </tr>
-            <tr>
-                <td nowrap colspan="2">
-                    <input type="checkbox" name="globalIntercom" ${admin:getBooleanProperty( "org.jitsi.videobridge.ofmeet.global.intercom", false) ? "checked" : ""}>
-                    <fmt:message key="config.page.configuration.global.intercom"/>
-                </td>
             </tr>
         </table>
     </admin:contentBox>

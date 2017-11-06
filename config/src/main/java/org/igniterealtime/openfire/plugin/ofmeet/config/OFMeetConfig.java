@@ -17,7 +17,6 @@
 package org.igniterealtime.openfire.plugin.ofmeet.config;
 
 import org.jivesoftware.util.JiveGlobals;
-import org.xmpp.packet.JID;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -35,7 +34,37 @@ import java.util.List;
  */
 public class OFMeetConfig
 {
+    public static final String OFMEET_WEBAPP_CONTEXTPATH_PROPERTYNAME = "ofmeet.webapp.contextpath";
+
     // No static methods! Static methods are not accessible when using this class as a bean in the Admin Console JSP pages.
+    public void setWebappContextPath( String contextPath )
+    {
+        JiveGlobals.setProperty( OFMEET_WEBAPP_CONTEXTPATH_PROPERTYNAME, contextPath );
+    }
+
+    public String getWebappContextPath()
+    {
+        String value = JiveGlobals.getProperty( OFMEET_WEBAPP_CONTEXTPATH_PROPERTYNAME, "/ofmeet" ).trim();
+
+        // Ensure that the value starts with a slash, but does not end with one (unless the root context is used).
+        if ( !value.startsWith( "/" ) )
+        {
+            value = "/" + value;
+        }
+
+        while ( value.endsWith( "/" ) && value.length() > 1 )
+        {
+            value = value.substring( 0, value.length() -1 );
+        }
+
+        return value;
+    }
+
+    public void resetWebappContextPath()
+    {
+        JiveGlobals.deleteProperty( OFMEET_WEBAPP_CONTEXTPATH_PROPERTYNAME );
+    }
+
     public void setChannelLastN( int lastN )
     {
         JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.channel.lastn", Integer.toString( lastN ) );
@@ -351,6 +380,7 @@ public class OFMeetConfig
     {
         JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.film.strip.max.height" );
     }
+
     public void setVerticalFilmstrip( boolean verticalFilmstrip )
     {
         JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.vertical.filmstrip", Boolean.toString( verticalFilmstrip ) );
@@ -364,5 +394,76 @@ public class OFMeetConfig
     public void resetVerticalFilmstrip()
     {
         JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.vertical.filmstrip" );
+    }
+
+    public void setStartAudioOnly( boolean startAudioOnly )
+    {
+        JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.startaudioonly", Boolean.toString( startAudioOnly ) );
+    }
+
+    public boolean getStartAudioOnly()
+    {
+        return JiveGlobals.getBooleanProperty( "org.jitsi.videobridge.ofmeet.startaudioonly", false );
+    }
+
+    public void resetStartAudioOnly()
+    {
+        JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.startaudioonly" );
+    }
+
+    public void setStartAudioMuted( Integer startAudioMuted )
+    {
+        JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.startaudiomuted", Integer.toString( startAudioMuted == null ? Integer.MAX_VALUE : startAudioMuted ) );
+    }
+
+    public Integer getStartAudioMuted()
+    {
+        // In storage, 'no limit' is represented by Integer.MAX_VALUE. 'Default' is represented by a null value.
+        final int startAudioMuted = JiveGlobals.getIntProperty( "org.jitsi.videobridge.ofmeet.startaudiomuted", 9 );
+        return startAudioMuted == Integer.MAX_VALUE ? null : startAudioMuted;
+    }
+
+    public void resetStartAudioMuted()
+    {
+        JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.startaudiomuted" );
+    }
+
+    public void setStartVideoMuted( Integer startVideoMuted )
+    {
+        JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.startvideomuted", Integer.toString( startVideoMuted == null ? Integer.MAX_VALUE : startVideoMuted ) );
+    }
+
+    public Integer getStartVideoMuted()
+    {
+        // In storage, 'no limit' is represented by Integer.MAX_VALUE. 'Default' is represented by a null value.
+        final int startVideoMuted = JiveGlobals.getIntProperty( "org.jitsi.videobridge.ofmeet.startvideomuted", 9 );
+        return startVideoMuted == Integer.MAX_VALUE ? null : startVideoMuted;
+    }
+
+    public void resetStartVideoMuted()
+    {
+        JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.startvideomuted" );
+    }
+
+    public void setInviteOptions( List<String> options )
+    {
+        if (options == null || options.isEmpty() )
+        {
+            JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.inviteOptions" );
+        }
+        else
+        {
+            JiveGlobals.setProperty( "org.jitsi.videobridge.ofmeet.inviteOptions", options);
+        }
+    }
+
+    public List<String> getInviteOptions()
+    {
+        return JiveGlobals.getListProperty( "oorg.jitsi.videobridge.ofmeet.inviteOptions", Arrays.asList( "invite"  ) ); // "invite", "dialout", "addtocall"
+    }
+
+    public void resetInviteOptions()
+    {
+        JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.inviteOptions" );
     }
 }

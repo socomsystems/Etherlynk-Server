@@ -18,7 +18,7 @@
 
     <groupId>org.igniterealtime.openfire.ofmeet</groupId>
     <artifactId>parent</artifactId>
-    <version>0.9.2-SNAPSHOT</version>
+    <version>0.9.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <organization>
@@ -37,6 +37,8 @@
         <module>config</module>
         <module>ofmeet</module>
         <module>offocus</module>
+        <module>ofswitch</module>         
+        <module>ofchat</module>          
     </modules>
 
     <licenses>
@@ -81,8 +83,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -94,12 +96,12 @@
             <dependency>
                 <groupId>org.jitsi</groupId>
                 <artifactId>jicofo</artifactId>
-                <version>1.0-20170707.231635-3</version>
+                <version>1.1-20171102.164223-6</version>
             </dependency>
             <dependency>
                 <groupId>org.jitsi</groupId>
                 <artifactId>jitsi-videobridge-openfire</artifactId>
-                <version>2.1-20170711.144128-2</version>
+                <version>2.2-20171103.213218-1</version>
             </dependency>
             <dependency>
                 <groupId>org.igniterealtime.openfire</groupId>
@@ -129,6 +131,16 @@
                 <artifactId>offocus</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>ofswitch</artifactId>
+                <version>${project.version}</version>
+            </dependency>              
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>ofchat</artifactId>
+                <version>${project.version}</version>
+            </dependency>                        
 
         </dependencies>
     </dependencyManagement>
