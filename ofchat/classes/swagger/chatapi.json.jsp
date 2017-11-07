@@ -7,7 +7,7 @@
     "swagger":"2.0",
     "info":{
     "description": "Chat API REST+SSE Documentation",    
-        "version":"0.0.2",
+        "version":"0.0.3",
         "title":"Chat API for Openfire"
     },
     "host":"<%= JiveGlobals.getProperty("network.interface", XMPPServer.getInstance().getServerInfo().getHostname()) + ":" + JiveGlobals.getProperty("httpbind.port.plain", "7070") %>",
@@ -15,7 +15,7 @@
     "tags": [
     {
         "name": "Ask",
-        "description": "For assistance (live person)"
+        "description": "For assistance (Fastpath)"
     },    
     {
         "name": "Chat",

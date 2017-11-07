@@ -133,6 +133,7 @@ public class CallControlComponent extends AbstractComponent
 
 		identity.addAttribute("category", "component");
 		identity.addAttribute("name", "callcontrol");
+		identity.addAttribute("type", "web");
 
 		queryElement.addElement("feature").addAttribute("var", "http://jitsi.org/protocol/jigasi");
 		queryElement.addElement("feature").addAttribute("var",  "urn:xmpp:rayo:0");

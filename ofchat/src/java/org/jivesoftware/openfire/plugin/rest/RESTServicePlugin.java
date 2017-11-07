@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.servlet.DispatcherType;
 import javax.ws.rs.core.Response;
 
 import org.jivesoftware.openfire.*;
@@ -93,6 +94,7 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
     private ServletContextHandler context;
     private ServletContextHandler context2;
     private ServletContextHandler context3;
+    private ServletContextHandler context4;
 
     private ExecutorService executor;
 
@@ -168,19 +170,41 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         HttpBindManager.getInstance().addJettyHandler(context2);
 
 
-        Log.info("Initialize WebService ");
+        Log.info("Initialize Chat WebService ");
 
-        WebAppContext context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes", "/ofchat");
+        context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes", "/chat");
         context3.setClassLoader(this.getClass().getClassLoader());
-
-        // Ensure the JSP engine is initialized correctly (in order to be able to cope with Tomcat/Jasper precompiled JSPs).
-
         final List<ContainerInitializer> initializers3 = new ArrayList<>();
         initializers3.add(new ContainerInitializer(new JettyJasperInitializer(), null));
         context3.setAttribute("org.eclipse.jetty.containerInitializers", initializers3);
         context3.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
         context3.setWelcomeFiles(new String[]{"index.html"});
         HttpBindManager.getInstance().addJettyHandler(context3);
+
+
+        Log.info("Initialize Meet WebService ");
+
+        context4 = new WebAppContext(null, pluginDirectory.getPath() + "/classes/jitsi-meet", "/meet");
+        context4.setClassLoader(this.getClass().getClassLoader());
+
+        if ( JiveGlobals.getBooleanProperty("ofmeet.security.enabled", true ) )
+        {
+            Log.info("Initialize Meet WebService security");
+            SecurityHandler securityHandler4 = basicAuth("ofchat");
+            if (securityHandler4 != null) context4.setSecurityHandler(securityHandler4);
+        }
+
+        final List<ContainerInitializer> initializers4 = new ArrayList<>();
+        initializers4.add(new ContainerInitializer(new JettyJasperInitializer(), null));
+        context4.setAttribute("org.eclipse.jetty.containerInitializers", initializers4);
+        context4.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+        context4.setWelcomeFiles(new String[]{"index.jsp"});
+        context4.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
+        HttpBindManager.getInstance().addJettyHandler(context4);
+
+		JiveGlobals.setProperty("ofmeet.buttons.implemented", 	"microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+		JiveGlobals.setProperty("ofmeet.buttons.enabled", 		"microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
 
         bookmarkInterceptor = new BookmarkInterceptor();
         bookmarkInterceptor.start();
@@ -257,6 +281,7 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         HttpBindManager.getInstance().removeJettyHandler(context);
         HttpBindManager.getInstance().removeJettyHandler(context2);
         HttpBindManager.getInstance().removeJettyHandler(context3);
+        HttpBindManager.getInstance().removeJettyHandler(context4);
 
         executor.shutdown();
     }

@@ -132,7 +132,7 @@ public final class XMPPServlet extends WebSocketServlet
 			if ( !"".equals( data.trim()))
 			{
 				try {
-					Log.info(" : onMessage : Received : \n" + data );
+					Log.debug(" : onMessage : Received : \n" + data );
 					sipConnection.deliver(data);
 
 				} catch ( Exception e ) {
@@ -151,7 +151,7 @@ public final class XMPPServlet extends WebSocketServlet
             if (wsSession != null && wsSession.isOpen() && !"".equals( message.trim() ) )
             {
                 try {
-                	Log.info(" : Delivered : \n" + message );
+                	Log.debug(" : Delivered : \n" + message );
                 	wsSession.getRemote().sendStringByFuture(message);
                 } catch (Exception e) {
                     Log.error("SIPWebSocket deliver " + e);

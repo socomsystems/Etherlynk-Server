@@ -115,7 +115,7 @@ public class SipConnection
 
 	public void deliver(String text)
 	{
-		Log.info("SipConnection - deliver " + text);
+		Log.debug("SipConnection - deliver " + text);
 
 		String sendText = text;
 
@@ -142,7 +142,7 @@ public class SipConnection
 	}
 
 	public void onMessage(String text) {
-		Log.info("SipConnection - onMessage " + text);
+		Log.debug("SipConnection - onMessage " + text);
 
 		try {
 			this.socket.deliver(text);
@@ -235,7 +235,7 @@ public class SipConnection
 
 		@OnWebSocketMessage public void onMessage(String msg)
 		{
-			Log.info("SIPSocket onMessage \n" + msg);
+			Log.debug("SIPSocket onMessage \n" + msg);
 			if (sipConnection != null) sipConnection.onMessage(msg);
 		}
 
@@ -244,7 +244,7 @@ public class SipConnection
 			if (session != null)
 			{
 				try {
-					Log.info("SIPSocket deliver: \n" + text);
+					Log.debug("SIPSocket deliver: \n" + text);
 					session.getRemote().sendStringByFuture(text);
 					lastMessage = null;
 				} catch (Exception e) {
