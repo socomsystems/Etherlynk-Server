@@ -1231,12 +1231,12 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
         return config.getUsername().toString();
     }
 
-    public void handleParser(XmlPullParser parser)
+    public void handleParser(String xml)
     {
         Stanza stanza = null;
 
         try {
-            stanza = PacketParserUtils.parseStanza(parser);
+            stanza = PacketParserUtils.parseStanza(xml);
         }
         catch (Exception e) {
             Log.error("handleParser", e);
@@ -1328,32 +1328,7 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
                 clientServlet.broadcast("chatapi.xmpp", text);
             }
 
-            try {
-                StringReader stringReader = new StringReader(text);
-
-                final XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
-                parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-                parser.setInput(stringReader);
-
-                int eventType = parser.getEventType();
-
-                do {
-                    eventType = parser.next();
-
-                    if (eventType == XmlPullParser.START_TAG)
-                    {
-                        connection.handleParser(parser);
-                    }
-
-                    else if (eventType == XmlPullParser.END_TAG) {
-
-                    }
-                } while (eventType != XmlPullParser.END_DOCUMENT);
-            }
-
-            catch (Exception e) {
-                Log.error("deliverRawText error", e);
-            }
+			connection.handleParser(text);
         }
 
         @Override

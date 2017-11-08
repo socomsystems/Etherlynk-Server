@@ -147,10 +147,6 @@ public class XMPPTCPConnection extends AbstractXMPPConnection
     protected void shutdown() {
         Log.info("shutdown " + user);
 
-        user = null;
-        authenticated = false;
-        reconnect = true;
-
         try {
             JID userJid = new JID(user.toString());
 
@@ -165,6 +161,10 @@ public class XMPPTCPConnection extends AbstractXMPPConnection
         } catch (Exception e) {
             Log.error("shutdown", e);
         }
+
+        user = null;
+        authenticated = false;
+        reconnect = true;
     }
 
     @Override
@@ -236,7 +236,7 @@ public class XMPPTCPConnection extends AbstractXMPPConnection
             smackConnection.getRouter().route(DocumentHelper.parseText(data).getRootElement());
 
         } catch ( Exception e ) {
-            Log.error( "An error occurred while attempting to route the packet : ", e );
+            Log.error( "An error occurred while attempting to route the packet : \n" + data);
         }
     }
 

@@ -202,11 +202,19 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         context4.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
         HttpBindManager.getInstance().addJettyHandler(context4);
 
+        Log.info("Initialize Email Listener");
+
         EmailListener.getInstance().start();
 
-        JiveGlobals.setProperty("ofmeet.buttons.implemented",   "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
-        JiveGlobals.setProperty("ofmeet.buttons.enabled",       "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+        Log.info("Initialize preffered property default values");
+
+        JiveGlobals.setProperty("ofmeet.buttons.implemented", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+        JiveGlobals.setProperty("ofmeet.buttons.enabled", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
+		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.chrome.extension.id", "fmgnibblgekonbgjhkjicekgacgoagmm");
+		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.min.chrome.ext.ver", "0.0.1");
+
+        Log.info("Initialize Bookmark Interceptor");
 
         bookmarkInterceptor = new BookmarkInterceptor();
         bookmarkInterceptor.start();
@@ -217,6 +225,8 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         {
             public Boolean call() throws Exception
             {
+        		Log.info("Bootstrap auto-join conferences");
+
                 UserEntities userEntities = UserServiceController.getInstance().getUserEntitiesByProperty("webpush.subscribe.%", null);
                 boolean isBookmarksAvailable = XMPPServer.getInstance().getPluginManager().getPlugin("bookmarks") != null;
                 Collection<Bookmark> bookmarks = null;
