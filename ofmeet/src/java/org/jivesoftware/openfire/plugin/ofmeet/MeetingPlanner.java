@@ -62,8 +62,9 @@ public class MeetingPlanner implements Job
                 if (XMPPServer.getInstance().getPluginManager().getPlugin("bookmarks") == null)
                 {
                     Log.debug( "Skipping the periodic execution, as the 'bookmarks' plugin is not loaded." );
-                }
-                processMeetingPlanner();
+
+                } else
+                    processMeetingPlanner();
             }
 
         }, 0,  900000);
@@ -307,7 +308,7 @@ public class MeetingPlanner implements Job
         if (scheduler != null)
         {
             try {
-                scheduler.deleteJob(JobKey.jobKey(job, group));			}
+                scheduler.deleteJob(JobKey.jobKey(job, group));         }
             catch (Throwable e) {
                 Log.error("Failed to execute quartz job...", e);
             }

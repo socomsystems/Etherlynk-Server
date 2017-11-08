@@ -313,6 +313,13 @@
             <artifactId>smack-legacy</artifactId>
             <version>4.2.1</version>
         </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-tcp -->
+        <dependency>
+            <groupId>org.igniterealtime.smack</groupId>
+            <artifactId>smack-tcp</artifactId>
+            <version>4.2.1</version>
+        </dependency>        
 
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-core -->
         <dependency>
@@ -328,7 +335,12 @@
             <version>1.2</version>
         </dependency>
 
-   
+        <dependency>
+           <groupId>org.json</groupId>
+           <artifactId>json</artifactId>
+           <version>20160810</version>
+        </dependency>
+        
     </dependencies>
 
 </project>

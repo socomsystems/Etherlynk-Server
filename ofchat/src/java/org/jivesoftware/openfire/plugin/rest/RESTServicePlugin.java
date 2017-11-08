@@ -202,9 +202,11 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         context4.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
         HttpBindManager.getInstance().addJettyHandler(context4);
 
-		JiveGlobals.setProperty("ofmeet.buttons.implemented", 	"microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
-		JiveGlobals.setProperty("ofmeet.buttons.enabled", 		"microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
-		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
+        EmailListener.getInstance().start();
+
+        JiveGlobals.setProperty("ofmeet.buttons.implemented",   "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+        JiveGlobals.setProperty("ofmeet.buttons.enabled",       "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
+        JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
 
         bookmarkInterceptor = new BookmarkInterceptor();
         bookmarkInterceptor.start();
@@ -284,6 +286,8 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         HttpBindManager.getInstance().removeJettyHandler(context4);
 
         executor.shutdown();
+
+        EmailListener.getInstance().stop();
     }
 
     /**

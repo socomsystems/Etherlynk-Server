@@ -15,5 +15,10 @@
                 <item url="swagger-ui-sandbox.jsp" id="swagger-ui" name="${admin.sidebar.webclients.item.swagger.name}" description="${admin.sidebar.webclients.item.swagger.description}" />                                                 
             </sidebar>
         </tab>
+        <tab id="tab-ofmeet" name="Meetings" description="XX">  
+            <sidebar id="siderbar-ofmeet" name="Meetings" description="XX">        
+            <item id="ofchat-email-listener" name="${config.page.email.listener.title}" description="${config.page.email.listener.description}" url="ofchat-email-listener.jsp"/> 
+         </sidebar>            
+        </tab>        
     </adminconsole>
 </plugin>
