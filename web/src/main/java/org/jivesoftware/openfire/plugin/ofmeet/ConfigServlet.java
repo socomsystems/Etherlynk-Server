@@ -283,7 +283,7 @@ public class ConfigServlet extends HttpServlet
                 websocketScheme = "ws";
             }
 
-            return new URI( websocketScheme, null, request.getServerName(), request.getServerPort(), "/ws", null, null);
+            return new URI( websocketScheme, null, request.getServerName(), request.getServerPort(), "/ws/", null, null);
         }
         else
         {
