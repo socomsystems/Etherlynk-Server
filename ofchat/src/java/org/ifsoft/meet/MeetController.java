@@ -14,6 +14,8 @@ import org.jivesoftware.openfire.session.*;
 
 import org.xmpp.packet.*;
 import org.jivesoftware.openfire.plugin.rawpropertyeditor.RawPropertyEditor;
+import org.jivesoftware.openfire.plugin.rest.RESTServicePlugin;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,11 @@ public class MeetController {
     private static final Logger Log = LoggerFactory.getLogger(MeetController.class);
     public static final MeetController INSTANCE = new MeetController();
 
+    private final ConcurrentHashMap<String, String> callIds = new ConcurrentHashMap<String, String>();
+    private final ConcurrentHashMap<String, String> droppedCalls = new ConcurrentHashMap<String, String>();
+    private final ConcurrentHashMap<String, String> makeCalls = new ConcurrentHashMap<String, String>();
+    private final ConcurrentHashMap<String, ExpectedCall> expectedCalls = new ConcurrentHashMap<String, ExpectedCall>();
+
     /**
      * Gets the instance.
      *
@@ -45,6 +52,327 @@ public class MeetController {
      */
     public static MeetController getInstance() {
         return INSTANCE;
+    }
+
+    //-------------------------------------------------------
+    //
+    // FreeSWITCH
+    //
+    //-------------------------------------------------------
+
+    /**
+     * perform action on active call
+     *
+     */
+    public boolean performAction(String action, String callId)
+    {
+        boolean processed = false;
+
+        if ("clear".equals(action) && RESTServicePlugin.getInstance().sendAsyncFWCommand("uuid_kill " + callId) != null)
+        {
+            processed = true;
+        }
+        return processed;
+    }
+
+    /**
+     * make a phone call
+     *
+     */
+    public String makeCall(String user, String destination)
+    {
+        Log.debug("makeCall " + user + " " + destination);
+
+        String callId = "makecall-" + System.currentTimeMillis() + "-" + user + "-" + destination;
+        String sipDomain = JiveGlobals.getProperty("freeswitch.sip.hostname", RESTServicePlugin.getInstance().getIpAddress());
+        String command = "originate {sip_from_user='" + user + "',origination_uuid=" + callId + "}[sip_invite_params=intercom=true,sip_h_Call-Info=<sip:" + sipDomain + ">;answer-after=0,sip_auto_answer=true]sofia/" + sipDomain + "/" + user + " " + destination;
+
+        makeCalls.put(callId, destination);
+
+        if (RESTServicePlugin.getInstance().sendAsyncFWCommand(command) != null)
+        {
+            int counter = 0;
+
+            while (makeCalls.containsKey(callId) && counter < 30) // timeout after 30 secs
+            {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) { }
+
+                counter++;
+            }
+
+            if (counter < 30) {
+                return callId;
+
+            } else {
+                Log.warn("makeCall timeout \n" + command);
+            }
+        }
+        makeCalls.remove(callId);
+        return "";
+    }
+
+    /**
+     * flash a phone number
+     *
+     */
+    public boolean flashPhone(String bridge, String destination)
+    {
+        Log.debug("flashPhone " + bridge + " " + destination);
+
+        String sipGateway = JiveGlobals.getProperty("freeswitch.sip.gateway", RESTServicePlugin.getInstance().getIpAddress());
+        String sipGatewayHost = JiveGlobals.getProperty("freeswitch.sip.gateway.host", sipGateway);
+
+        String callId = "flashphone-" + System.currentTimeMillis() + "-" + destination;
+        String command = "originate {origination_uuid=" + callId + "}sofia/gateway/" + sipGateway + "/" + destination + "@" + sipGatewayHost + " &park()";
+
+        droppedCalls.put(callId, bridge);
+
+        if (RESTServicePlugin.getInstance().sendAsyncFWCommand(command) != null)
+        {
+            int counter = 0;
+
+            while (droppedCalls.containsKey(callId) && counter < 30) // timeout after a minute
+            {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) { }
+
+                counter++;
+            }
+
+            if (counter < 30) {
+                return true;
+
+            } else {
+                Log.warn("flashPhone timeout \n" + command);
+            }
+        }
+
+        droppedCalls.remove(callId);
+        return false;
+    }
+
+    /**
+     * add a user to an audiobridge conference
+     *
+     */
+    public void addUserToAudiobridge(String extension, String audiobridge)
+    {
+        Log.debug("addUserToAudiobridge " + extension + " " + audiobridge);
+
+        String sipDomain = JiveGlobals.getProperty("freeswitch.sip.hostname", RESTServicePlugin.getInstance().getIpAddress());
+        String callbackName = JiveGlobals.getProperty("freeswitch.callback.name", extension);
+        String callbackNumber = JiveGlobals.getProperty("freeswitch.callback.number", extension);
+        String callId = audiobridge + "-" + System.currentTimeMillis();
+
+        String command = "originate {origination_caller_id_name='" + callbackName + "',origination_caller_id_number='" + callbackNumber + "',sip_from_user='" + extension + "',origination_uuid=" + callId + "}[sip_invite_params=intercom=true,sip_h_Call-Info=<sip:" + sipDomain + ">;answer-after=0,sip_auto_answer=true]sofia/" + sipDomain + "/" + extension + " &conference(" + audiobridge + ")";
+
+        if (RESTServicePlugin.getInstance().sendAsyncFWCommand(command) != null)
+        {
+            callIds.put(extension + audiobridge, callId);
+        }
+    }
+
+    /**
+     * remove a user from an audiobridge conference
+     *
+     */
+    public void removeUserFromAudiobridge(String extension, String audiobridge)
+    {
+        Log.debug("removeUserFromAudiobridge " + extension + " " + audiobridge);
+
+        String key = extension + audiobridge;
+
+        if (callIds.containsKey(key))
+        {
+            RESTServicePlugin.getInstance().sendAsyncFWCommand("uuid_kill " + callIds.remove(key));
+        }
+    }
+
+    /**
+     * event from freeswitch
+     *
+     */
+    public void conferenceEventLeave(Map<String, String> headers, String confName, int confSize)
+    {
+
+    }
+
+    /**
+     * event from freeswitch
+     *
+     */
+    public void conferenceEventJoin(Map<String, String> headers, String confName, int confSize)
+    {
+
+    }
+
+    /**
+     * event from freeswitch
+     *
+     */
+    public void sendSipEvent(String roomName, String source, String callId, String eventName)
+    {
+        String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+
+        JSONObject event = new JSONObject();
+        event.put("event", eventName);
+        event.put("conference", roomName);
+        event.put("source", source);
+        event.put("id", callId);
+
+        Message message = new Message();
+        message.setFrom(domain);
+        message.addChildElement("ofmeet", "jabber:x:ofmeet").setText(event.toString());
+        XMPPServer.getInstance().getSessionManager().broadcast(message);
+    }
+
+    /**
+     * event from freeswitch
+     *
+     */
+    public void callStateEvent(Map<String, String> headers)
+    {
+        String callState = headers.get("Channel-Call-State");
+        String origCallState = headers.get("Original-Channel-Call-State");
+        String callDirection = headers.get("Call-Direction");
+        String source = headers.get("Caller-Caller-ID-Number");
+        String destination = headers.get("Caller-Destination-Number");
+
+        final String callId = headers.get("Caller-Unique-ID");
+
+        Log.debug("callStateEvent " + callState + " " + origCallState + " " + destination + " " + source + " " + callId + " " + callDirection);
+
+        if ("RINGING".equals(callState) && "inbound".equals(callDirection))
+        {
+            if (expectedCalls.containsKey(source))
+            {
+                ExpectedCall expectedCall = expectedCalls.remove(source);
+
+                //String command = "uuid_transfer " + callId + " " + destination + ";conf=" + expectedCall.audiobridge;
+                String command = "uuid_broadcast " + callId + " conference::" + expectedCall.audiobridge;
+
+                RESTServicePlugin.getInstance().sendAsyncFWCommand(command);
+            }
+        }
+        else
+
+        if ("DOWN".equals(origCallState) && "ACTIVE".equals(callState) && "outbound".equals(callDirection))
+        {
+            // make call (originate)
+
+            makeCalls.remove(callId);
+        }
+        else
+
+        if ("DOWN".equals(origCallState) && "EARLY".equals(callState) && "outbound".equals(callDirection))
+        {
+            // call ringing, kill now
+
+            String bridge = droppedCalls.remove(callId);
+
+            if (bridge != null)
+            {
+                new Timer().schedule(new TimerTask()
+                {
+                    @Override public void run()
+                    {
+                        RESTServicePlugin.getInstance().sendAsyncFWCommand("uuid_kill " + callId);
+                    }
+
+                }, 1000);
+
+                setupExpectedCall(bridge, source);
+            }
+        }
+        else
+
+        if ("EARLY".equals(origCallState) && "ACTIVE".equals(callState) && "outbound".equals(callDirection))
+        {
+            // call answered, should not happen for flashphone. kill anyway
+
+            String bridge = droppedCalls.remove(callId);
+
+            if (bridge != null)
+            {
+                new Timer().schedule(new TimerTask()
+                {
+                    @Override public void run()
+                    {
+                        RESTServicePlugin.getInstance().sendAsyncFWCommand("uuid_kill " + callId);
+                    }
+
+                }, 1000);
+
+                setupExpectedCall(bridge, source);
+            }
+        }
+
+        else
+
+        if ("ACTIVE".equals(origCallState) && "HANGUP".equals(callState) && "outbound".equals(callDirection))
+        {
+            // call cleared, clean up
+            String bridge = droppedCalls.remove(callId);
+
+            if (bridge != null)
+            {
+                setupExpectedCall(bridge, source);
+            }
+        }
+        else
+
+        if ("DOWN".equals(origCallState) && "HANGUP".equals(callState) && "outbound".equals(callDirection))
+        {
+            // call failed, clean up
+            String bridge = droppedCalls.remove(callId);
+
+            if (bridge != null)
+            {
+                setupExpectedCall(bridge, source);
+            }
+        }
+
+        else
+
+        if ("EARLY".equals(origCallState) && "HANGUP".equals(callState) && "outbound".equals(callDirection))
+        {
+            // call missed, should not happen, cleanup
+            String bridge = droppedCalls.remove(callId);
+
+            if (bridge != null)
+            {
+                setupExpectedCall(bridge, source);
+            }
+        }
+    }
+
+    /**
+     * queue expected callback
+     *
+     */
+    public void setupExpectedCall(String bridge, String caller)
+    {
+        if (expectedCalls.containsKey(caller) == false)
+        {
+            expectedCalls.put(caller, new ExpectedCall());
+        }
+
+        ExpectedCall expectedCall = expectedCalls.get(caller);
+        expectedCall.registered = System.currentTimeMillis();
+        expectedCall.expired = expectedCall.registered + (15 * 3600000);
+        expectedCall.caller = caller;
+        expectedCall.audiobridge = bridge;
+    }
+
+    private class ExpectedCall
+    {
+        public long registered;
+        public long expired;
+        public String caller;
+        public String audiobridge;
     }
 
     //-------------------------------------------------------

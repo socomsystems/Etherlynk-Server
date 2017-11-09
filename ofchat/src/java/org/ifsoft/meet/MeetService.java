@@ -115,4 +115,86 @@ public class MeetService {
         }
         return Response.status(Response.Status.BAD_REQUEST).build();
     }
+
+    //-------------------------------------------------------
+    //
+    //  FreeSWITCH
+    //
+    //-------------------------------------------------------
+    @POST
+    @Path("/flash/{bridge}/{destination}")
+    public Response flashPhone(@PathParam("bridge") String bridge, @PathParam("destination") String destination) throws ServiceException
+    {
+        // use a missed call to notify a meeting participant to join meeting (flashing)
+        // on incoming, check CLI and put into bridge if expected
+
+        try {
+            if (meetController.flashPhone(bridge, destination))
+            {
+                return Response.status(Response.Status.OK).build();
+            }
+        } catch (Exception e) {
+            Log.error("flashPhone", e);
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    @POST
+    @Path("/phone/{username}/{destination}")
+    public String makeCall(@PathParam("username") String username, @PathParam("destination") String destination) throws ServiceException
+    {
+        String callId = "";
+
+        try {
+        	callId = meetController.makeCall(username, destination);
+
+        } catch (Exception e) {
+            Log.error("makeCall", e);
+        }
+        return "{\"id\": \"" + callId + "\"}";
+    }
+
+    @POST
+    @Path("/action/{action}/{callId}")
+    public Response performAction(@PathParam("action") String action, @PathParam("callId") String callId) throws ServiceException
+    {
+        try {
+            if (meetController.performAction(action, callId))
+            {
+                return Response.status(Response.Status.OK).build();
+            }
+
+        } catch (Exception e) {
+            Log.error("performAction", e);
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    @POST
+    @Path("/add/{username}/{audiobridge}")
+    public Response addUserToAudiobridge(@PathParam("audiobridge") String audiobridge, @PathParam("username") String username) throws ServiceException
+    {
+        try {
+			meetController.addUserToAudiobridge(username, audiobridge);
+			return Response.status(Response.Status.OK).build();
+
+        } catch (Exception e) {
+            Log.error("addUserToAudiobridge", e);
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    @POST
+    @Path("/remove/{username}/{audiobridge}")
+    public Response removeUserFromAudiobridge(@PathParam("audiobridge") String audiobridge, @PathParam("username") String username) throws ServiceException
+    {
+        try {
+			meetController.removeUserFromAudiobridge(username, audiobridge);
+			return Response.status(Response.Status.OK).build();
+
+        } catch (Exception e) {
+            Log.error("leaveAudiobridge", e);
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
 }

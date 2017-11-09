@@ -15,6 +15,24 @@
                 <item url="swagger-ui-sandbox.jsp" id="swagger-ui" name="${admin.sidebar.webclients.item.swagger.name}" description="${admin.sidebar.webclients.item.swagger.description}" />                                                        
                 <item url="ofchat-email-listener.jsp" id="ofchat-email-listener" name="${config.page.email.listener.title}" description="${config.page.email.listener.description}"/> 
          </sidebar>            
-        </tab>        
+        </tab>     
+            
+        <tab id="tab-users" >
+            <sidebar id="sidebar-users" >
+                <item id="user-summary" >
+                    <sidebar id="sidebar-users-options" >
+                        <item id="user-properties-plugin" name="Edit User Properties" url="user-properties.jsp" description="View, change and edit user properties"/>
+                    </sidebar>
+                </item>
+            </sidebar>
+
+              <sidebar id="sidebar-groups" >
+                <item id="group-summary" >
+                    <sidebar id="sidebar-group-options">
+                             <item id="group-properties-plugin" name="Edit Group Properties"  url="group-properties.jsp" description="View, change and edit group properties"/>                                       
+                    </sidebar>
+                </item>
+            </sidebar>
+        </tab>         
     </adminconsole>
 </plugin>

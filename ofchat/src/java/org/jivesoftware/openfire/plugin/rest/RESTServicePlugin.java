@@ -18,7 +18,9 @@ package org.jivesoftware.openfire.plugin.rest;
 
 import java.io.File;
 import java.util.*;
+import java.net.*;
 import java.util.concurrent.*;
+import java.lang.reflect.*;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.core.Response;
@@ -63,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.jivesoftware.smack.OpenfireConnection;
+import org.ifsoft.meet.*;
 
 /**
  * The Class RESTServicePlugin.
@@ -97,6 +100,7 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
     private ServletContextHandler context4;
 
     private ExecutorService executor;
+    private Plugin ofswitch = null;
 
 
     /**
@@ -641,4 +645,71 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         }
         return false;
     }
+
+	public String getIpAddress()
+	{
+		String ourHostname = XMPPServer.getInstance().getServerInfo().getHostname();
+		String ourIpAddress = ourHostname;
+
+		try {
+			ourIpAddress = InetAddress.getByName(ourHostname).getHostAddress();
+		} catch (Exception e) {
+
+		}
+
+		return ourIpAddress;
+	}
+
+	public void eventReceived( String eventName, Map<String, String> headers )
+	{
+		Log.debug("FreeSWITCH eventReceived " + eventName + " " + headers);
+
+        if (eventName.equals("CHANNEL_CALLSTATE"))
+        {
+            MeetController.getInstance().callStateEvent(headers);
+		}
+	}
+
+	public void conferenceEventJoin(String uniqueId, String confName, int confSize, Map<String, String> headers)
+	{
+		Log.debug("FreeSWITCH conferenceEventJoin " + confName + " " + headers);
+        MeetController.getInstance().conferenceEventJoin(headers, confName, confSize);
+	}
+
+	public void conferenceEventLeave(String uniqueId, String confName, int confSize, Map<String, String> headers)
+	{
+		Log.debug("FreeSWITCH conferenceEventLeave " + confName + " " + headers);
+        MeetController.getInstance().conferenceEventLeave(headers, confName, confSize);
+	}
+
+	public Object sendAsyncFWCommand(String command)
+	{
+		Object response = null;
+
+		if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
+
+		try {
+			Method method = ofswitch.getClass().getMethod("sendAsyncFWCommand", new Class[] {String.class});
+			response = method.invoke(ofswitch, new Object[] {command});
+		} catch (Exception e) {
+			Log.error("reflect error " + e);
+		}
+		return response;
+	}
+
+	public Object sendFWCommand(String command)
+	{
+		Object response = null;
+
+		if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
+
+		try {
+			Method method = ofswitch.getClass().getMethod("sendFWCommand", new Class[] {String.class});
+			response = method.invoke(ofswitch, new Object[] {command});
+		} catch (Exception e) {
+			Log.error("reflect error " + e);
+		}
+		return response;
+	}
+
 }

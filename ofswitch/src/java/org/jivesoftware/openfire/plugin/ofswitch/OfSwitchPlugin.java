@@ -23,6 +23,7 @@ import java.sql.*;
 import java.io.File;
 import java.util.*;
 import java.net.*;
+import java.lang.reflect.*;
 import java.util.concurrent.*;
 
 import javax.servlet.DispatcherType;
@@ -71,6 +72,7 @@ import net.sf.json.*;
 import org.dom4j.*;
 
 
+
 public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventListener, PropertyEventListener  {
 
     private static final Logger Log = LoggerFactory.getLogger(OfSwitchPlugin.class);
@@ -88,6 +90,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     private ComponentManager componentManager;
     private ServletContextHandler sipContextHandler;
     private CallControlComponent ccComponent;
+    private Plugin ofchat = null;
 
     private final HashMap<String, String> makeCalls = new HashMap<String, String>();
 	private final HashMap<String, String> memberCallIdMaping = new HashMap<String, String>();
@@ -420,6 +423,16 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     {
 		String eventName = event.getEventName();
 		Map<String, String> headers = event.getEventHeaders();
+
+		if (ofchat == null) ofchat = (Plugin) server.getPluginManager().getPlugin("ofchat");
+
+		try{
+			Method method = ofchat.getClass().getDeclaredMethod ("eventReceived", new Class[] {String.class, Map.class});
+			method.invoke(ofchat, new Object[] {eventName, headers});
+		} catch (Exception e) {
+			Log.error("reflect error " + e);
+		}
+
 		String eventType = headers.get("Event-Subclass");
 		String origCallState = headers.get("Original-Channel-Call-State");
 
@@ -454,6 +467,16 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     @Override public void conferenceEventJoin(String uniqueId, String confName, int confSize, EslEvent event)
     {
         Map<String, String> headers = event.getEventHeaders();
+
+		if (ofchat == null) ofchat = (Plugin) server.getPluginManager().getPlugin("ofchat");
+
+		try {
+			Method method = ofchat.getClass().getMethod("conferenceEventJoin", new Class[] {String.class, String.class, int.class, Map.class});
+			method.invoke(ofchat, new Object[] {uniqueId, confName, confSize, headers});
+		} catch (Exception e) {
+			Log.error("reflect error " + e);
+		}
+
 
 		String callId = headers.get("Caller-Unique-ID");
 		String memberId = headers.get("Member-ID");
@@ -503,6 +526,14 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     {
         Map<String, String> headers = event.getEventHeaders();
 
+		if (ofchat == null) ofchat = (Plugin) server.getPluginManager().getPlugin("ofchat");
+
+		try {
+			Method method = ofchat.getClass().getMethod("conferenceEventLeave", new Class[] {String.class, String.class, int.class, Map.class});
+			method.invoke(ofchat, new Object[] {uniqueId, confName, confSize, headers});
+		} catch (Exception e) {
+			Log.error("reflect error " + e);
+		}
 		String callId = headers.get("Caller-Unique-ID");
 		String memberId = headers.get("Member-ID");
 		String source = headers.get("Caller-Caller-ID-Number");
