@@ -186,6 +186,11 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
         return connections.get(streamId);
     }
 
+    public static OpenfireConnection getUserConnection(String username)
+    {
+        return users.get(username);
+    }
+
     public static OpenfireConnection removeConnection(String streamId) throws SmackException
     {
         OpenfireConnection connection = connections.remove(streamId);

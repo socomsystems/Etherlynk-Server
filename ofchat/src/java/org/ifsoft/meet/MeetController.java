@@ -512,4 +512,44 @@ public class MeetController {
 
         return keyPairGenerator.generateKeyPair();
     }
+
+    //-------------------------------------------------------
+    //
+    //  Jitsi Meet
+    //
+    //-------------------------------------------------------
+
+    public boolean inviteToJvb(String username, String jid)
+    {
+		if (SessionManager.getInstance().getSessions(username).size() > 0)
+		{
+			String room = username + "-" + System.currentTimeMillis();
+			String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+
+			try {
+				JID jid1 = new JID(username + "@" + domain);
+				JID jid2 = new JID(jid);
+
+				String confJid = room + "@conference." + domain;
+
+				Message message1 = new Message();
+				message1.setFrom(jid1);
+				message1.setTo(jid2);
+				message1.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid);
+				XMPPServer.getInstance().getRoutingTable().routePacket(jid2, message1, true);
+
+				Message message2 = new Message();
+				message2.setFrom(jid2);
+				message2.setTo(jid1);
+				message2.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid).addAttribute("autoaccept", "true");
+				XMPPServer.getInstance().getRoutingTable().routePacket(jid1, message2, true);
+
+				return true;
+
+			} catch (Exception e) {
+				Log.error("inviteToJvb", e);
+			}
+		}
+		return false;
+    }
 }

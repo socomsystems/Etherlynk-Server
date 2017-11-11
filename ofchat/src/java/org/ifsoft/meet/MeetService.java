@@ -121,6 +121,7 @@ public class MeetService {
     //  FreeSWITCH
     //
     //-------------------------------------------------------
+
     @POST
     @Path("/flash/{bridge}/{destination}")
     public Response flashPhone(@PathParam("bridge") String bridge, @PathParam("destination") String destination) throws ServiceException
@@ -196,5 +197,28 @@ public class MeetService {
             Log.error("leaveAudiobridge", e);
         }
         return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    //-------------------------------------------------------
+    //
+    //  Jitsi Meet
+    //
+    //-------------------------------------------------------
+
+    @POST
+    @Path("/invite/{username}/{jid}")
+    public Response inviteToJvb(@PathParam("username") String username, @PathParam("jid") String jid) throws ServiceException
+    {
+		try {
+
+			if (meetController.inviteToJvb(username, jid))
+			{
+				return Response.status(Response.Status.OK).build();
+			}
+
+		} catch (Exception e) {
+			Log.error("inviteToJvb", e);
+		}
+		return Response.status(Response.Status.BAD_REQUEST).build();
     }
 }

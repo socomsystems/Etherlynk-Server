@@ -83,7 +83,7 @@ public class JitsiMeetRedirectFilter implements Filter
         final String uri = request.getRequestURI().toLowerCase();
         for ( final String excludedExtension : excludedExtensions )
         {
-            if ( uri.contains("/proxy") || uri.contains("/config") || uri.endsWith( "." + excludedExtension ) || uri.contains( "." + excludedExtension + "?" ) )
+            if ( uri.contains("/custom") || uri.contains("/proxy") || uri.contains("/config") || uri.endsWith( "." + excludedExtension ) || uri.contains( "." + excludedExtension + "?" ) )
             {
                 return true;
             }

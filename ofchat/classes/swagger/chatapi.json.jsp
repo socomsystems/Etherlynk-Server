@@ -2986,13 +2986,13 @@
                 }
             }
         },      
-        "/restapi/v1/meet/invite/{username}":{
+        "/restapi/v1/meet/invite/{username}/{jid}":{
             "post":{
-        "tags": [
-            "Meet"
-        ], 
-        "summary": "Invite a user to a videobridge conference meeting",
-        "description": "",      
+                "tags": [
+                    "Meet"
+                ], 
+                "summary": "Invite a Jist videobridge invite from a local user to a destination JID",
+                "description": "Destination must be an XMPP JID",                        
                 "consumes":[
                 ],
                 "produces":[
@@ -3000,17 +3000,15 @@
                 "parameters":[
                     {
                         "type":"string",
-                        "name":"username",
+                        "name":"jid",
                         "in":"path",
                         "required":true
                     },
                     {
-                        "name":"body",
-                        "in":"body",
-                        "required":true,
-                        "schema":{
-                            "$ref":"#/definitions/MeetingEntity"
-                        }
+                        "type":"string",
+                        "name":"username",
+                        "in":"path",
+                        "required":true
                     }
                 ],
                 "responses":{
@@ -3029,11 +3027,11 @@
         },
         "/restapi/v1/meet/phone/{username}/{destination}":{
             "post":{
-        "tags": [
-            "Meet"
-        ], 
-        "summary": "Make a telephone call from a user phone to a destination",
-        "description": "Destination must be a number on the dialplan",            
+            "tags": [
+                "Meet"
+            ], 
+            "summary": "Make a telephone call from a user phone to a destination",
+            "description": "Destination must be a number on the dialplan",            
                 "consumes":[
                 ],
                 "produces":[

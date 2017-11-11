@@ -109,7 +109,9 @@
 </div>
 <div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
 -->
-
+<div style="float: right;">
+    <button onclick="navigator.registerProtocolHandler('web+el', window.location.protocol + '//' + window.location.host + '/meet/custom?url=%s', 'Etherlynk');">Enable web+el custom url protocol</button>
+</div>
 <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
 </body>
 </html>
