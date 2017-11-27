@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.sf.json.*;
 import org.xmpp.packet.*;
-
+import org.dom4j.Element;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.apache.http.HttpResponse;
@@ -535,13 +535,15 @@ public class MeetController {
 				Message message1 = new Message();
 				message1.setFrom(jid1);
 				message1.setTo(jid2);
-				message1.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid);
+				Element x1 = message1.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid);
+				x1.addElement("invite").addAttribute("from", jid1.toString());
 				XMPPServer.getInstance().getRoutingTable().routePacket(jid2, message1, true);
 
 				Message message2 = new Message();
 				message2.setFrom(jid2);
 				message2.setTo(jid1);
-				message2.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid).addAttribute("autoaccept", "true");
+				Element x2 = message2.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid).addAttribute("autoaccept", "true");
+				x2.addElement("invite").addAttribute("from", jid2.toString());
 				XMPPServer.getInstance().getRoutingTable().routePacket(jid1, message2, true);
 
 				return true;
