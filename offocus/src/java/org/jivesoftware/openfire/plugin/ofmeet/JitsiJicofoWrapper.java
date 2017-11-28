@@ -91,7 +91,7 @@ public class JitsiJicofoWrapper
         final OSGiBundleConfig jicofoConfig = new JicofoBundleConfig();
         OSGi.setBundleConfig(jicofoConfig);
 
-        Thread.sleep(5000 ); // BAO - wait for videobridge to fully initialise
+        Thread.sleep(10000 ); // BAO - wait for videobridge to fully initialise
 
         jicofoComponent = new FocusComponent( XMPPServer.getInstance().getServerInfo().getHostname(), 0, XMPPServer.getInstance().getServerInfo().getXMPPDomain(), jicofoSubdomain, null, focusAnonymous, XMPPServer.getInstance().createJID( "focus", null ).toBareJID() );
 

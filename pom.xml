@@ -33,11 +33,11 @@
     </properties>
 
     <modules>
+        <module>ofmeet</module>       
         <module>ofswitch</module>     
         <module>ofchat</module>  
         <module>web</module>
-        <module>config</module>                          
-        <module>ofmeet</module>       
+        <module>config</module>                              
         <module>offocus</module>        
     </modules>
 
