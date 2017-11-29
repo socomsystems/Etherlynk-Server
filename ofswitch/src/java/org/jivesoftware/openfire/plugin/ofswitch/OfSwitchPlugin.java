@@ -40,6 +40,8 @@ import org.jivesoftware.openfire.cluster.ClusterManager;
 import org.jivesoftware.openfire.XMPPServer;
 import org.jivesoftware.openfire.SessionManager;
 import org.jivesoftware.database.DbConnectionManager;
+import org.jivesoftware.openfire.muc.MUCEventListener;
+import org.jivesoftware.openfire.muc.MUCEventDispatcher;
 
 import org.xmpp.component.ComponentManager;
 import org.xmpp.component.ComponentManagerFactory;
@@ -73,7 +75,7 @@ import org.dom4j.*;
 
 
 
-public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventListener, PropertyEventListener  {
+public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventListener, PropertyEventListener, MUCEventListener  {
 
     private static final Logger Log = LoggerFactory.getLogger(OfSwitchPlugin.class);
 	private FreeSwitchThread freeSwitchThread;
@@ -91,6 +93,9 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     private ServletContextHandler sipContextHandler;
     private CallControlComponent ccComponent;
     private Plugin ofchat = null;
+    private Plugin ofmeet = null;
+    private Timer timer = null;
+    private File pluginDirectory;
 
     private final HashMap<String, String> makeCalls = new HashMap<String, String>();
 	private final HashMap<String, String> memberCallIdMaping = new HashMap<String, String>();
@@ -112,6 +117,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
     {
 		componentManager = ComponentManagerFactory.getComponentManager();
 		self = this;
+        this.pluginDirectory = pluginDirectory;
 		server = XMPPServer.getInstance();
 
 		try {
@@ -126,7 +132,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 
 			Log.info("Initialize FreeSwitch");
 
-			checkNatives(pluginDirectory);
+			checkNatives();
 
 			boolean freeswitchEnabled = JiveGlobals.getBooleanProperty("freeswitch.enabled", false);
 
@@ -186,6 +192,8 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 				}
 			}
 
+			timer = new Timer();
+			MUCEventDispatcher.addListener(this);
 
 		} catch (Exception e) {
 			Log.error("Could NOT start openfire switch", e);
@@ -221,6 +229,12 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 				componentManager.removeComponent("callcontrol");
 			} catch (Exception e) {	}
 
+
+			if (timer != null) {
+				timer.cancel();
+				timer = null;
+			}
+			MUCEventDispatcher.removeListener(this);
 
         } catch (Exception e) {
 
@@ -294,7 +308,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 		}
 	}
 
-    private void checkNatives(File pluginDirectory)
+    private void checkNatives()
     {
         try
         {
@@ -717,4 +731,77 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 		makeCalls.remove(callId);
 		return null;
 	}
+
+    //-------------------------------------------------------
+    //
+    //      MUC room events
+    //
+    //-------------------------------------------------------
+
+    @Override
+    public void roomCreated(JID roomJID)
+    {
+
+    }
+
+    @Override
+    public void roomDestroyed(JID roomJID)
+    {
+
+    }
+
+    @Override
+    public void occupantJoined(final JID roomJID, JID user, String nickname)
+    {
+        final String roomName = roomJID.getNode();
+
+        timer.schedule(new TimerTask()
+        {
+			@Override public void run()
+			{
+				if (JiveGlobals.getProperty("ofmeet.autorecord.enabled", "false").equals("true"))
+				{
+					if (ofmeet == null) ofmeet = (Plugin) server.getPluginManager().getPlugin("ofmeet");
+
+					try{
+						Method method = ofmeet.getClass().getDeclaredMethod ("setRecording", new Class[] {String.class, String.class});
+						method.invoke(ofmeet, new Object[] {roomName, null});
+					} catch (Exception e) {
+						Log.error("reflect error " + e);
+					}
+				}
+			}
+
+        }, 20000);
+    }
+
+    @Override
+    public void occupantLeft(final JID roomJID, JID user)
+    {
+
+    }
+
+    @Override
+    public void nicknameChanged(JID roomJID, JID user, String oldNickname, String newNickname)
+    {
+
+    }
+
+    @Override
+    public void messageReceived(JID roomJID, JID user, String nickname, Message message)
+    {
+
+    }
+
+    @Override
+    public void roomSubjectChanged(JID roomJID, JID user, String newSubject)
+    {
+
+    }
+
+    @Override
+    public void privateMessageRecieved(JID a, JID b, Message message)
+    {
+
+    }
 }

@@ -48,8 +48,6 @@ import org.jivesoftware.openfire.plugin.ofmeet.sasl.OfMeetSaslProvider;
 import org.jivesoftware.openfire.plugin.ofmeet.sasl.OfMeetSaslServer;
 import org.jivesoftware.openfire.session.ClientSession;
 import org.jivesoftware.openfire.session.Session;
-import org.jivesoftware.openfire.muc.MUCEventListener;
-import org.jivesoftware.openfire.muc.MUCEventDispatcher;
 import org.jivesoftware.util.JiveGlobals;
 import org.jivesoftware.util.PropertyEventDispatcher;
 import org.jivesoftware.util.PropertyEventListener;
@@ -71,8 +69,7 @@ import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 /**
  * Bundles various Jitsi components into one, standalone Openfire plugin.
@@ -83,7 +80,7 @@ import java.util.TimerTask;
  * -- autorecord should become jitsi videobridge feature: https://github.com/jitsi/jitsi-videobridge/issues/344
  * - jicofo moved from (modified) jitsiplugin and moved to this class
  */
-public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventListener, PropertyEventListener, MUCEventListener
+public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventListener, PropertyEventListener
 {
     private static final Logger Log = LoggerFactory.getLogger(OfMeetPlugin.class);
 
@@ -97,7 +94,7 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
 
     private final JitsiPluginWrapper jitsiPluginWrapper;
     private final MeetingPlanner meetingPlanner;
-    private Timer timer = null;
+
 
     public OfMeetPlugin()
     {
@@ -174,8 +171,6 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
         Security.addProvider( new OfMeetSaslProvider() );
         SASLAuthentication.addSupportedMechanism( OfMeetSaslServer.MECHANISM_NAME );
 
-        timer = new Timer();
-        MUCEventDispatcher.addListener(this);
     }
 
     public void destroyPlugin()
@@ -232,11 +227,6 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
 
         ClusterManager.removeListener(this);
 
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-        MUCEventDispatcher.removeListener(this);
     }
 
     protected void loadPublicWebApp() throws Exception
@@ -510,6 +500,35 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
         return this.jitsiPluginWrapper.getVideobridge();
     }
 
+	public void setRecording(String roomName, String path)
+	{
+		Videobridge videobridge = getVideobridge();
+
+		if (path == null)
+		{
+			path = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + "ofmeet-cdn"  + File.separator + "download";
+		}
+
+		for (Conference conference : videobridge.getConferences())
+		{
+			String room = conference.getName().toString();
+
+			if (room != null && !"".equals(room) && roomName.equals(room))
+			{
+				for (Content content : conference.getContents())
+				{
+					if (content != null && !content.isExpired() && !content.isRecording() && !"data".equals(content.getMediaType().toString()))
+					{
+						Log.info("set videobridge recording " + roomName + " " + content.getMediaType().toString() + " " + path);
+						content.setRecording(true, path);
+						break;
+					}
+				}
+				break;
+			}
+		}
+	}
+
     //-------------------------------------------------------
     //
     //      session management
@@ -604,79 +623,4 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
 
     }
 
-    @Override
-    public void roomCreated(JID roomJID)
-    {
-
-    }
-
-    @Override
-    public void roomDestroyed(JID roomJID)
-    {
-
-    }
-
-    @Override
-    public void occupantJoined(final JID roomJID, JID user, String nickname)
-    {
-        final String roomName = roomJID.getNode();
-
-        timer.schedule(new TimerTask()
-        {
-            @Override public void run()
-            {
-                Videobridge videobridge = getVideobridge();
-
-                for (Conference conference : videobridge.getConferences())
-                {
-                    String room = conference.getName().toString();
-
-                    if (room != null && !"".equals(room) && roomName.equals(room))
-                    {
-                        if (JiveGlobals.getProperty("ofmeet.autorecord.enabled", "true").equals("true"))
-                        {
-                            for (Content content : conference.getContents())
-                            {
-                                if (content != null && !content.isExpired() && !content.isRecording())
-                                {
-                                    Log.info("occupantJoined videobridge recording for " + nickname + content.getMediaType().toString());
-                                    content.setRecording(true, pluginDirectory.getAbsolutePath() + File.separator + "classes" + File.separator + "recordings");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }, 20000);
-    }
-
-    @Override
-    public void occupantLeft(final JID roomJID, JID user)
-    {
-
-    }
-
-    @Override
-    public void nicknameChanged(JID roomJID, JID user, String oldNickname, String newNickname)
-    {
-
-    }
-
-    @Override
-    public void messageReceived(JID roomJID, JID user, String nickname, Message message)
-    {
-
-    }
-
-    @Override
-    public void roomSubjectChanged(JID roomJID, JID user, String newSubject)
-    {
-
-    }
-
-    @Override
-    public void privateMessageRecieved(JID a, JID b, Message message)
-    {
-
-    }
 }
