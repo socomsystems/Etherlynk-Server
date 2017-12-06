@@ -1,12 +1,12 @@
 call mvn clean package
 
 rd "C:\openfire_4_1_6\plugins\ofmeet" /q /s
-rd "C:\openfire_4_1_6\plugins\ofocus" /q /s
+rd "C:\openfire_4_1_6\plugins\offocus" /q /s
 rd "C:\openfire_4_1_6\plugins\ofswitch" /q /s
 rd "C:\openfire_4_1_6\plugins\ofchat" /q /s
 
 del "C:\openfire_4_1_6\plugins\ofmeet.jar" 
-del "C:\openfire_4_1_6\plugins\ofocus.jar" 
+del "C:\openfire_4_1_6\plugins\offocus.jar" 
 del "C:\openfire_4_1_6\plugins\ofswitch.jar" 
 del "C:\openfire_4_1_6\plugins\ofchat.jar" 
 

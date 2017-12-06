@@ -20,9 +20,9 @@
     <class>org.jivesoftware.openfire.plugin.ofmeet.FocusPlugin</class>
     <name>${project.name}</name>
     <description>${project.description}</description>
-    <author>Ignite Realtime</author>
-    <version>${project.version}</version>
-    <date>11/03/2017</date>
+    <author>Ignite Realtime, Etherlynk Project</author>
+    <version>0.9.3-EL</version>
+    <date>12/06/2017</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>
 </plugin>
