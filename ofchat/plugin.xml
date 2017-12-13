@@ -5,8 +5,8 @@
     <name>Openfire Chat</name>
     <description>Enables chat and groupchat over a RESTful API with Server Sent Events (SSE).</description>
     <author>Ignite Realtime, Etherlynk Project</author>
-    <version>0.9.3-EL</version>
-    <date>12/06/2017</date>
+    <version>0.9.3-EL-1</version>
+    <date>12/13/2017</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>    
     <adminconsole>
