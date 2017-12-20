@@ -270,9 +270,10 @@ public class ConfigServlet extends HttpServlet
     public static URI getMostPreferredConnectionURL( HttpServletRequest request ) throws URISyntaxException
     {
         Log.debug( "[{}] Generating BOSH URL based on {}", request.getRemoteAddr(), request.getRequestURL() );
-        if ( XMPPServer.getInstance().getPluginManager().getPlugin( "websocket" ) != null )
+
+        if (JiveGlobals.getBooleanProperty( "ofmeet.websocket.preferred.connection", true ))
         {
-            Log.debug( "[{}] Websocket plugin is available. Returning a websocket address.", request.getRemoteAddr() );
+            Log.debug( "[{}] Websocket preferred. Returning a websocket address.", request.getRemoteAddr() );
             final String websocketScheme;
             if ( request.getScheme().endsWith( "s" ) )
             {
@@ -287,7 +288,7 @@ public class ConfigServlet extends HttpServlet
         }
         else
         {
-            Log.debug( "[{}] No Websocket plugin available. Returning an HTTP-BIND address.", request.getRemoteAddr() );
+            Log.debug( "[{}] BOSH is preferred. Returning an HTTP-BIND address.", request.getRemoteAddr() );
             return new URI( request.getScheme(), null, request.getServerName(), request.getServerPort(), "/http-bind/", null, null);
         }
     }

@@ -26,7 +26,11 @@ import javax.servlet.DispatcherType;
 import javax.ws.rs.core.Response;
 
 import org.jivesoftware.openfire.*;
+import org.jivesoftware.openfire.user.*;
+import org.jivesoftware.openfire.event.*;
 import org.jivesoftware.openfire.group.*;
+import org.jivesoftware.openfire.muc.*;
+import org.jivesoftware.openfire.session.*;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
 import org.jivesoftware.openfire.http.HttpBindManager;
@@ -66,11 +70,13 @@ import org.slf4j.LoggerFactory;
 
 import org.jivesoftware.smack.OpenfireConnection;
 import org.ifsoft.meet.*;
+import org.xmpp.packet.*;
+import org.dom4j.Element;
 
 /**
  * The Class RESTServicePlugin.
  */
-public class RESTServicePlugin implements Plugin, PropertyEventListener {
+public class RESTServicePlugin implements Plugin, SessionEventListener, PropertyEventListener {
     private static final Logger Log = LoggerFactory.getLogger(RESTServicePlugin.class);
 
     /** The Constant INSTANCE. */
@@ -118,6 +124,9 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
     public void initializePlugin(PluginManager manager, File pluginDirectory)
     {
         INSTANCE = this;
+
+        SessionEventDispatcher.addListener(this);
+
         secret = JiveGlobals.getProperty("plugin.restapi.secret", "");
 
         // If no secret key has been assigned, assign a random one.
@@ -215,8 +224,8 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         JiveGlobals.setProperty("ofmeet.buttons.implemented", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
         JiveGlobals.setProperty("ofmeet.buttons.enabled", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
-		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.chrome.extension.id", "fmgnibblgekonbgjhkjicekgacgoagmm");
-		JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.min.chrome.ext.ver", "0.0.1");
+        JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.chrome.extension.id", "fmgnibblgekonbgjhkjicekgacgoagmm");
+        JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.min.chrome.ext.ver", "0.0.1");
 
         Log.info("Initialize Bookmark Interceptor");
 
@@ -229,7 +238,7 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         {
             public Boolean call() throws Exception
             {
-        		Log.info("Bootstrap auto-join conferences");
+                Log.info("Bootstrap auto-join conferences");
 
                 UserEntities userEntities = UserServiceController.getInstance().getUserEntitiesByProperty("webpush.subscribe.%", null);
                 boolean isBookmarksAvailable = XMPPServer.getInstance().getPluginManager().getPlugin("bookmarks") != null;
@@ -300,8 +309,8 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         HttpBindManager.getInstance().removeJettyHandler(context4);
 
         executor.shutdown();
-
         EmailListener.getInstance().stop();
+        SessionEventDispatcher.removeListener(this);
     }
 
     /**
@@ -646,70 +655,132 @@ public class RESTServicePlugin implements Plugin, PropertyEventListener {
         return false;
     }
 
-	public String getIpAddress()
-	{
-		String ourHostname = XMPPServer.getInstance().getServerInfo().getHostname();
-		String ourIpAddress = ourHostname;
+    public String getIpAddress()
+    {
+        String ourHostname = XMPPServer.getInstance().getServerInfo().getHostname();
+        String ourIpAddress = ourHostname;
 
-		try {
-			ourIpAddress = InetAddress.getByName(ourHostname).getHostAddress();
-		} catch (Exception e) {
+        try {
+            ourIpAddress = InetAddress.getByName(ourHostname).getHostAddress();
+        } catch (Exception e) {
 
-		}
+        }
 
-		return ourIpAddress;
-	}
+        return ourIpAddress;
+    }
 
-	public void eventReceived( String eventName, Map<String, String> headers )
-	{
-		Log.debug("FreeSWITCH eventReceived " + eventName + " " + headers);
+    public void eventReceived( String eventName, Map<String, String> headers )
+    {
+        Log.debug("FreeSWITCH eventReceived " + eventName + " " + headers);
 
         if (eventName.equals("CHANNEL_CALLSTATE"))
         {
             MeetController.getInstance().callStateEvent(headers);
-		}
-	}
+        }
+    }
 
-	public void conferenceEventJoin(String uniqueId, String confName, int confSize, Map<String, String> headers)
-	{
-		Log.debug("FreeSWITCH conferenceEventJoin " + confName + " " + headers);
+    public void conferenceEventJoin(String uniqueId, String confName, int confSize, Map<String, String> headers)
+    {
+        Log.debug("FreeSWITCH conferenceEventJoin " + confName + " " + headers);
         MeetController.getInstance().conferenceEventJoin(headers, confName, confSize);
-	}
+    }
 
-	public void conferenceEventLeave(String uniqueId, String confName, int confSize, Map<String, String> headers)
-	{
-		Log.debug("FreeSWITCH conferenceEventLeave " + confName + " " + headers);
+    public void conferenceEventLeave(String uniqueId, String confName, int confSize, Map<String, String> headers)
+    {
+        Log.debug("FreeSWITCH conferenceEventLeave " + confName + " " + headers);
         MeetController.getInstance().conferenceEventLeave(headers, confName, confSize);
-	}
+    }
 
-	public Object sendAsyncFWCommand(String command)
-	{
-		Object response = null;
+    public Object sendAsyncFWCommand(String command)
+    {
+        Object response = null;
 
-		if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
+        if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
 
-		try {
-			Method method = ofswitch.getClass().getMethod("sendAsyncFWCommand", new Class[] {String.class});
-			response = method.invoke(ofswitch, new Object[] {command});
-		} catch (Exception e) {
-			Log.error("reflect error " + e);
-		}
-		return response;
-	}
+        try {
+            Method method = ofswitch.getClass().getMethod("sendAsyncFWCommand", new Class[] {String.class});
+            response = method.invoke(ofswitch, new Object[] {command});
+        } catch (Exception e) {
+            Log.error("reflect error " + e);
+        }
+        return response;
+    }
 
-	public Object sendFWCommand(String command)
-	{
-		Object response = null;
+    public Object sendFWCommand(String command)
+    {
+        Object response = null;
 
-		if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
+        if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
 
-		try {
-			Method method = ofswitch.getClass().getMethod("sendFWCommand", new Class[] {String.class});
-			response = method.invoke(ofswitch, new Object[] {command});
-		} catch (Exception e) {
-			Log.error("reflect error " + e);
-		}
-		return response;
-	}
+        try {
+            Method method = ofswitch.getClass().getMethod("sendFWCommand", new Class[] {String.class});
+            response = method.invoke(ofswitch, new Object[] {command});
+        } catch (Exception e) {
+            Log.error("reflect error " + e);
+        }
+        return response;
+    }
 
+    // -------------------------------------------------------
+    //
+    //
+    //
+    // -------------------------------------------------------
+
+    public void anonymousSessionCreated(Session session)
+    {
+
+    }
+
+    public void anonymousSessionDestroyed(Session session)
+    {
+        exitAllRooms(session.getAddress());
+    }
+
+    public void resourceBound(Session session)
+    {
+
+    }
+
+    public void sessionCreated(Session session)
+    {
+
+    }
+
+    public void sessionDestroyed(Session session)
+    {
+        exitAllRooms(session.getAddress());
+    }
+
+    public void exitAllRooms(JID jid)
+    {
+        boolean bruteForceLogoff = JiveGlobals.getBooleanProperty("ofmeet.bruteforce.logoff", true);
+
+        if (bruteForceLogoff)
+        {
+            Log.info("logoff - " + jid);
+
+            String userJid = jid.toBareJID();
+
+            for ( MultiUserChatService mucService : XMPPServer.getInstance().getMultiUserChatManager().getMultiUserChatServices() )
+            {
+                List<MUCRoom> rooms = mucService.getChatRooms();
+
+                for (MUCRoom chatRoom : rooms)
+                {
+                    try {
+                        Log.info("forcing " + userJid + " out of " + chatRoom.getName());
+
+                        chatRoom.addNone(new JID(userJid), chatRoom.getRole());
+
+                        chatRoom.kickOccupant( jid, chatRoom.getRole().getUserAddress(), null, "" );
+                        chatRoom.kickOccupant( new JID(userJid), chatRoom.getRole().getUserAddress(), null, "" );
+                    }
+                    catch (Exception e) {
+                        Log.error("forcing " + userJid + " out of " + chatRoom.getName(), e);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -18,10 +18,10 @@
 
 <plugin>
     <class>org.jivesoftware.openfire.plugin.ofmeet.FocusPlugin</class>
-    <name>${project.name}</name>
-    <description>${project.description}</description>
+    <name>Etherlynk Focus</name>
+    <description>The focus entity that manages meetings</description>
     <author>Ignite Realtime, Etherlynk Project</author>
-    <version>0.9.3-EL</version>
+    <version>0.9.3 Release 2</version>
     <date>12/06/2017</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>
