@@ -17,6 +17,7 @@
 package org.jivesoftware.openfire.plugin.rest;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.*;
 import java.net.*;
 import java.util.concurrent.*;
@@ -56,6 +57,7 @@ import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.*;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.fcgi.server.proxy.*;
 
 import org.eclipse.jetty.util.security.*;
 import org.eclipse.jetty.security.*;
@@ -105,6 +107,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     private ServletContextHandler context3;
     private ServletContextHandler context4;
 
+    private WebAppContext solo;
+    public File pluginDirectory;
+
     private ExecutorService executor;
     private Plugin ofswitch = null;
 
@@ -124,6 +129,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     public void initializePlugin(PluginManager manager, File pluginDirectory)
     {
         INSTANCE = this;
+        this.pluginDirectory = pluginDirectory;
 
         SessionEventDispatcher.addListener(this);
 
@@ -186,6 +192,14 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         Log.info("Initialize Chat WebService ");
 
         context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes", "/chat");
+
+        ServletHolder fcgiServlet = context3.addServlet(FastCGIProxyServlet.class, "*.php");
+        fcgiServlet.setInitParameter(FastCGIProxyServlet.SCRIPT_ROOT_INIT_PARAM, pluginDirectory.getPath() + "/classes");
+        fcgiServlet.setInitParameter("proxyTo", "http://localhost:9123");
+        fcgiServlet.setInitParameter("prefix", "/");
+        fcgiServlet.setInitParameter("dirAllowed", "false");
+        fcgiServlet.setInitParameter(FastCGIProxyServlet.SCRIPT_PATTERN_INIT_PARAM, "(.+?\\.php)");
+
         context3.setClassLoader(this.getClass().getClassLoader());
         final List<ContainerInitializer> initializers3 = new ArrayList<>();
         initializers3.add(new ContainerInitializer(new JettyJasperInitializer(), null));
@@ -226,6 +240,15 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.chrome.extension.id", "fmgnibblgekonbgjhkjicekgacgoagmm");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.min.chrome.ext.ver", "0.0.1");
+
+        try
+        {
+            loadSolo();
+        }
+        catch ( Exception ex )
+        {
+            Log.error( "An exception occurred while attempting to load solo", ex );
+        }
 
         Log.info("Initialize Bookmark Interceptor");
 
@@ -311,6 +334,10 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         executor.shutdown();
         EmailListener.getInstance().stop();
         SessionEventDispatcher.removeListener(this);
+
+        try {
+            unloadSolo();
+        } catch (Exception e) {}
     }
 
     /**
@@ -610,7 +637,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         Constraint constraint = new Constraint();
         constraint.setName(Constraint.__BASIC_AUTH);
-        constraint.setRoles(new String[]{"ofchat"});
+        constraint.setRoles(new String[]{"ofchat", "blog-owner", "blog-contributor", "solo-admin"});
         constraint.setAuthenticate(true);
 
         ConstraintMapping cm = new ConstraintMapping();
@@ -780,6 +807,75 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
                         Log.error("forcing " + userJid + " out of " + chatRoom.getName(), e);
                     }
                 }
+            }
+        }
+    }
+
+    // -------------------------------------------------------
+    //
+    //
+    //
+    // -------------------------------------------------------
+
+    protected void loadSolo() throws Exception
+    {
+        Log.info( "Initializing solo application" );
+        Log.debug( "Identify the name of the solo archive file" );
+
+        final File libs = new File(pluginDirectory.getPath() + File.separator + "classes");
+
+        final File[] matchingFiles = libs.listFiles( new FilenameFilter()
+        {
+            public boolean accept(File dir, String name)
+            {
+                return name.toLowerCase().startsWith("solo") && name.toLowerCase().endsWith(".war");
+            }
+        });
+
+        final File soloApp;
+        switch ( matchingFiles.length )
+        {
+            case 0:
+                Log.error( "Unable to find public web application archive for solo!" );
+                return;
+
+            default:
+                Log.warn( "Found more than one public web application archive for solo. Using an arbitrary one." );
+                // intended fall-through.
+
+            case 1:
+                soloApp = matchingFiles[0];
+                Log.debug( "Using this archive: {}", soloApp );
+        }
+
+        Log.debug( "Creating new WebAppContext for solo." );
+
+        solo = new WebAppContext();
+        solo.setWar( soloApp.getAbsolutePath() );
+        solo.setContextPath( "/blog" );
+
+        final List<ContainerInitializer> initializers = new ArrayList<>();
+        initializers.add(new ContainerInitializer(new JettyJasperInitializer(), null));
+        solo.setAttribute("org.eclipse.jetty.containerInitializers", initializers);
+        solo.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+
+        HttpBindManager.getInstance().addJettyHandler( solo );
+
+        Log.debug( "Initialized solo application" );
+    }
+
+    public void unloadSolo() throws Exception
+    {
+        if ( solo != null )
+        {
+            try
+            {
+                HttpBindManager.getInstance().removeJettyHandler( solo );
+                solo.destroy();
+            }
+            finally
+            {
+                solo = null;
             }
         }
     }

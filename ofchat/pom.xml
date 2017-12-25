@@ -341,6 +341,14 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.6</version>
         </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jetty.fcgi/fcgi-server -->
+        <dependency>
+            <groupId>org.eclipse.jetty.fcgi</groupId>
+            <artifactId>fcgi-server</artifactId>
+            <version>9.2.14.v20151106</version>
+        </dependency>
+        
 
         <dependency>
            <groupId>org.json</groupId>
