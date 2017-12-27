@@ -138,7 +138,7 @@ public final class SoloServletListener extends AbstractServletListener {
             String driver = JiveGlobals.getXMLProperty("database.defaultProvider.driver");
             String serverURL = JiveGlobals.getXMLProperty("database.defaultProvider.serverURL");
 
-            String blogName = JiveGlobals.getProperty("ofchat.blog.name", "blog");
+            String blogName = JiveGlobals.getProperty("solo.blog.name", "solo");
 
             List<String> lines = Arrays.asList("runtimeDatabase=H2", "jdbc.username=root", "jdbc.password=", "jdbc.driver=org.h2.Driver", "jdbc.URL=jdbc:h2:~/solo_h2/db", "jdbc.pool=h2", "jdbc.minConnCnt=5", "jdbc.maxConnCnt=10", "jdbc.transactionIsolation=REPEATABLE_READ", "jdbc.tablePrefix=" + blogName);
 
@@ -179,12 +179,12 @@ public final class SoloServletListener extends AbstractServletListener {
         beanManager = Lifecycle.getBeanManager();
 
         // Upgrade check (https://github.com/b3log/solo/issues/12040)
-        //final UpgradeService upgradeService = beanManager.getReference(UpgradeService.class);
-        //upgradeService.upgrade();
+        final UpgradeService upgradeService = beanManager.getReference(UpgradeService.class);
+        upgradeService.upgrade();
 
         // Import check (https://github.com/b3log/solo/issues/12293)
-        //final ImportService importService = beanManager.getReference(ImportService.class);
-        //importService.importMarkdowns();
+        final ImportService importService = beanManager.getReference(ImportService.class);
+        importService.importMarkdowns();
 
         JdbcRepository.dispose();
 

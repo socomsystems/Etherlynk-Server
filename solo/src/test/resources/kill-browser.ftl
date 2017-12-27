@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8" />
         <title>${blogTitle}</title>
-        <meta name="keywords" content="Solo,Java 博客,开源" />
-        <meta name="description" content="An open source blog with Java. Java 开源博客" />
+        <meta name="keywords" content="Solo,Openfire" />
+        <meta name="description" content="An open source blog with Openfire" />
         <meta name="owner" content="B3log Team" />
         <meta name="author" content="B3log Team" />
         <meta name="generator" content="Solo" />

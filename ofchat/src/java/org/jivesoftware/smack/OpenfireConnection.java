@@ -79,6 +79,7 @@ import org.eclipse.jetty.servlets.EventSource;
 import org.eclipse.jetty.servlets.EventSourceServlet;
 
 import org.ifsoft.meet.MeetController;
+import org.jivesoftware.spark.plugin.fileupload.UploadRequest;
 
 /**
  * A virtual implementation of {@link XMPPConnection}, intended to be used in
@@ -129,6 +130,10 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
     // Statics
     //
     // -------------------------------------------------------
+
+    static {
+        ProviderManager.addIQProvider("slot", UploadRequest.NAMESPACE, new UploadRequest.Provider());
+    }
 
     public static OpenfireConnection createConnection(String username, String password)
     {
@@ -903,6 +908,75 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
         return new AssistQueues(queues);
     }
 
+    // -------------------------------------------------------
+    //
+    // Upload
+    //
+    // -------------------------------------------------------
+
+    public static JSONObject getUploadRequest(String userId, String fileName, long fileLength) throws XMPPException {
+        Log.debug("getUploadRequest " + fileName + " " + fileLength);
+
+        JSONObject resp = new JSONObject();
+        String errorMsg = null;
+
+        try {
+            UploadRequest request = new UploadRequest(fileName, fileLength);
+            request.setTo("httpfileupload." + XMPPServer.getInstance().getServerInfo().getXMPPDomain());
+            request.setType(IQ.Type.get);
+
+            OpenfireConnection uploadConnection = getXMPPConnection(userId);
+
+            if (uploadConnection != null)
+            {
+                StanzaCollector collector = uploadConnection.createStanzaCollector(new PacketIDFilter(request.getPacketID()));
+
+                uploadConnection.sendPacket(request);
+
+                IQ result = (IQ) collector.nextResult(5000);
+                collector.cancel();
+
+                if (result == null) {
+                   errorMsg = "No response from the server.";
+                   Log.error(errorMsg);
+                   resp.put("error", errorMsg);
+                   return resp;
+                }
+                if (result.getType() == IQ.Type.error) {
+                   errorMsg = result.getError().getConditionText();
+
+                   if (errorMsg == null)
+                   {
+                        if (result.getError().getCondition() == XMPPError.Condition.not_acceptable)
+                        {
+                            errorMsg = "File too large.";
+                        }
+                        else errorMsg = result.getError().toString();
+                   }
+
+                   Log.error(errorMsg);
+                   resp.put("error", errorMsg);
+                   return resp;
+                }
+
+                UploadRequest response = (UploadRequest) result;
+
+                Log.warn("handleUpload response " + response.putUrl + " " + response.getUrl);
+                resp.put("get", response.getUrl);
+                resp.put("put", response.putUrl);
+                return resp;
+
+            } else {
+                resp.put("error", "upload failed. No XMPP connection");
+                return resp;
+            }
+
+        } catch (Exception e) {
+            Log.error("uploadFile error", e);
+            resp.put("error", e.toString());
+            return resp;
+        }
+    }
 
     // -------------------------------------------------------
     //
@@ -1333,7 +1407,7 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
                 clientServlet.broadcast("chatapi.xmpp", text);
             }
 
-			connection.handleParser(text);
+            connection.handleParser(text);
         }
 
         @Override

@@ -133,4 +133,23 @@ public class AskService {
 
         return Response.status(Response.Status.OK).build();
     }
+
+    @GET
+    @Path("/upload/{userId}/{fileName}/{fileSize}")
+    public String uploadRequest(@PathParam("userId") String userId, @PathParam("fileName") String fileName, @PathParam("fileSize") String fileSize) throws ServiceException
+    {
+        try {
+            JSONObject response = OpenfireConnection.getUploadRequest(userId, fileName, Long.parseLong(fileSize));
+
+            if (response.has("error"))
+            {
+                throw new ServiceException("Exception", response.getString("error"), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+            }
+
+            return response.toString();
+
+        } catch (Exception e) {
+            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        }
+    }
 }

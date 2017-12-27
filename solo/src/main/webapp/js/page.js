@@ -136,27 +136,27 @@ $.extend(Page.prototype, {
     for (var i = 0; i < languages.length; i++) {
       switch (languages[i]) {
         case "groovy":
-          languages[i] = 'groovy				' +
+          languages[i] = 'groovy                ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushGroovy.js';
           break;
         case "java":
-          languages[i] = 'java				' +
+          languages[i] = 'java              ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushJava.js';
           break;
         case "php":
-          languages[i] = 'php				' +
+          languages[i] = 'php               ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushPhp.js';
           break;
         case "scala":
-          languages[i] = 'scala				' +
+          languages[i] = 'scala             ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushScala.js';
           break;
         case "sql":
-          languages[i] = 'sql				' +
+          languages[i] = 'sql               ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushSql.js';
           break;
         case "applescript":
-          languages[i] = 'applescript			' +
+          languages[i] = 'applescript           ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushAppleScript.js';
           break;
         case "as3":
@@ -171,7 +171,7 @@ $.extend(Page.prototype, {
           break;
         case "coldfusion":
         case "cf":
-          languages[i] = 'coldfusion cf			' +
+          languages[i] = 'coldfusion cf         ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushColdFusion.js';
           break;
         case "c#":
@@ -182,22 +182,22 @@ $.extend(Page.prototype, {
           break;
         case "cpp":
         case "c":
-          languages[i] = 'cpp c				' +
+          languages[i] = 'cpp c             ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushCpp.js';
           break;
         case "css":
-          languages[i] = 'css				' +
+          languages[i] = 'css               ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushCss.js';
           break;
         case "delphi":
         case "pascal":
-          languages[i] = 'delphi pascal			' +
+          languages[i] = 'delphi pascal         ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushDelphi.js';
           break;
         case "diff":
         case "patch":
         case "pas":
-          languages[i] = 'diff patch pas			' +
+          languages[i] = 'diff patch pas            ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushDiff.js';
           break;
         case "erl":
@@ -213,17 +213,17 @@ $.extend(Page.prototype, {
           break;
         case "jfx":
         case "javafx":
-          languages[i] = 'jfx javafx                 	' +
+          languages[i] = 'jfx javafx                    ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushJavaFX.js';
           break;
         case "perl":
         case "pl":
-          languages[i] = 'perl pl                    	' +
+          languages[i] = 'perl pl                       ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushPerl.js';
           break;
         case "plain":
         case "text":
-          languages[i] = 'text plain                 	' +
+          languages[i] = 'text plain                    ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushPlain.js';
           break;
         case "ps":
@@ -240,17 +240,17 @@ $.extend(Page.prototype, {
         case "ror":
         case "ruby":
         case "rb":
-          languages[i] = 'ruby rails ror rb          	' +
+          languages[i] = 'ruby rails ror rb             ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushRuby.js';
           break;
         case "sass":
         case "scss":
-          languages[i] = 'sass scss                  	' +
+          languages[i] = 'sass scss                     ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushSass.js';
           break;
         case "vb":
         case "vbnet":
-          languages[i] = 'vb vbnet                   	' +
+          languages[i] = 'vb vbnet                      ' +
             latkeConfig.staticServePath + '/js/lib/SyntaxHighlighter/scripts/shBrushVb.js';
           break;
         case "xml":
@@ -498,6 +498,9 @@ $.extend(Page.prototype, {
   loadExternalRelevantArticles: function (tags, headTitle) {
     var tips = this.tips;
     try {
+/*
+      // TODO - BAO use xmpp federation
+
       $.ajax({
         url: "https://rhythm.b3log.org/get-articles-by-tags.do?tags=" + tags
         + "&blogHost=" + tips.blogHost + "&paginationPageSize=" + tips.externalRelevantArticlesDisplayCount,
@@ -530,6 +533,7 @@ $.extend(Page.prototype, {
           $("#externalRelevantArticles").append(randomArticleListHtml);
         }
       });
+*/
     } catch (e) {
       // 忽略相关文章加载异常：load script error
     }

@@ -2,7 +2,7 @@
 <div id="symphonyInterestPanel">
     <div class="module-panel">
         <div class="module-header">
-            <h2>${interestLabel}</h2>
+            <h2>Ignite Realtime News Feed</h2>
         </div>
         <div class="module-body padding12">
             <div id="symphonyInterest">

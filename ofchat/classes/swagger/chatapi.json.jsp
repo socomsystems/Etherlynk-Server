@@ -187,11 +187,11 @@
         },
         "/restapi/v1/ask/":{
             "post":{
-        "tags": [
-            "Ask"
-        ],             
-        "summary": "Ask for assistance",
-        "description": "",                
+                "tags": [
+                    "Ask"
+                ],             
+                "summary": "Ask for assistance",
+                "description": "",                
                 "consumes":[
                 ],
                 "produces":[
@@ -218,6 +218,49 @@
                 }
             }
         },
+        "/restapi/v1/ask/upload/{userId}/{fileName}/{fileSize}":{
+            "get":{
+                "tags": [
+                    "Ask"
+                ],             
+                "summary": "Request for upload GET/PUT URLs",
+                "description": "Use this API to request for a pair of URLs that will enable an HTTP file PUT upload and a GET download. You would require the httpfileupload plugin installed.",             
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"fileName",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"fileSize",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"userId",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            }
+        },        
         "/restapi/v1/ask/{userId}":{
             "get":{
         "tags": [

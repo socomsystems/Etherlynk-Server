@@ -50,6 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import org.jivesoftware.openfire.auth.AuthFactory;
 
 /**
  * <a href="http://www.xmlrpc.com/metaWeblogApi">MetaWeblog API</a> requests processing.
@@ -229,7 +230,9 @@ public class MetaWeblogAPI {
 
             final String userPwd = params.getJSONObject(INDEX_USER_PWD).getJSONObject("value").getString("string");
 
-            if (!user.getString(User.USER_PASSWORD).equals(MD5.hash(userPwd))) {
+            try {
+                AuthFactory.authenticate(user.getString(User.USER_NAME), userPwd);
+            } catch (Exception e) {
                 throw new Exception("Wrong password");
             }
 

@@ -59,6 +59,10 @@ import java.util.Calendar;
 import java.util.Map;
 
 import org.jivesoftware.util.EmailService;
+import org.jivesoftware.openfire.auth.AuthFactory;
+import org.jivesoftware.openfire.auth.ConnectionException;
+import org.jivesoftware.openfire.auth.InternalUnauthenticatedException;
+import org.jivesoftware.openfire.auth.UnauthorizedException;
 
 /**
  * Login/logout processor.
@@ -209,25 +213,36 @@ public class LoginProcessor {
                 return;
             }
 
-            if (MD5.hash(userPwd).equals(user.getString(User.USER_PASSWORD))) {
-                Sessions.login(request, context.getResponse(), user);
+            String userName = user.getString(User.USER_NAME);
 
-                LOGGER.log(Level.INFO, "Logged in[email={0}]", userEmail);
+            try {
+                AuthFactory.authenticate(userName, userPwd);
+            } catch (UnauthorizedException e) {
+                LOGGER.log(Level.WARN, "Wrong password[{0}/{1}]", userName, userPwd);
+                return;
 
-                jsonObject.put(Common.IS_LOGGED_IN, true);
-
-                if (Role.VISITOR_ROLE.equals(user.optString(User.USER_ROLE))) {
-                    jsonObject.put("to", Latkes.getServePath());
-                } else {
-                    jsonObject.put("to", Latkes.getServePath() + Common.ADMIN_INDEX_URI);
-                }
-
-                jsonObject.remove(Keys.MSG);
-
+            } catch (ConnectionException e) {
+                LOGGER.log(Level.WARN, "Wrong password[{0}/{1}]", userName, userPwd);
+                return;
+            } catch (InternalUnauthenticatedException e) {
+                LOGGER.log(Level.WARN, "Wrong password[{0}/{1}]", userName, userPwd);
                 return;
             }
 
-            LOGGER.log(Level.WARN, "Wrong password[{0}]", userPwd);
+            Sessions.login(request, context.getResponse(), user);
+
+            LOGGER.log(Level.INFO, "Logged in[email={0}]", userEmail);
+
+            jsonObject.put(Common.IS_LOGGED_IN, true);
+
+            if (Role.VISITOR_ROLE.equals(user.optString(User.USER_ROLE))) {
+                jsonObject.put("to", Latkes.getServePath());
+            } else {
+                jsonObject.put("to", Latkes.getServePath() + Common.ADMIN_INDEX_URI);
+            }
+
+            jsonObject.remove(Keys.MSG);
+
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
         }

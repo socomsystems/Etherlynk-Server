@@ -852,7 +852,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         solo = new WebAppContext();
         solo.setWar( soloApp.getAbsolutePath() );
-        solo.setContextPath( "/blog" );
+
+        String blogName = JiveGlobals.getProperty("solo.blog.name", "blog");
+        solo.setContextPath( "/" + blogName);
 
         final List<ContainerInitializer> initializers = new ArrayList<>();
         initializers.add(new ContainerInitializer(new JettyJasperInitializer(), null));

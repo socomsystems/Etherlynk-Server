@@ -51,7 +51,7 @@ public class ErrorProcessor {
     /**
      * Logger.
      */
-    private static final Logger LOGGER = Logger.getLogger(ArticleProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(ErrorProcessor.class);
 
     /**
      * User service.

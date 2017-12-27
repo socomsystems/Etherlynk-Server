@@ -46,6 +46,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jivesoftware.openfire.auth.AuthFactory;
+
 /**
  * Blog processor.
  *
@@ -218,9 +220,11 @@ public class BlogProcessor {
         }
 
         final JSONObject admin = userQueryService.getAdmin();
-        if (!MD5.hash(pwd).equals(admin.getString(User.USER_PASSWORD))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
 
+        try {
+            AuthFactory.authenticate(admin.getString(User.USER_NAME), pwd);
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
