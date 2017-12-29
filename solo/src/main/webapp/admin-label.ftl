@@ -1,7 +1,10 @@
 <script type="text/javascript">
     var latkeConfig = {
-      "staticServePath": "${staticServePath}",
-      "servePath": "${servePath}"
+        "staticServePath": "${staticServePath}",
+        "servePath": "${servePath}",
+        "staticServePath": "${staticServePath}",
+        "isLoggedIn": true,
+        "userName": "${userName}"
     };
     
     var qiniu = {

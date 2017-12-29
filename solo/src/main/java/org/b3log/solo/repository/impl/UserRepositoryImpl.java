@@ -42,8 +42,10 @@ import org.jivesoftware.openfire.group.GroupManager;
 import org.jivesoftware.openfire.group.GroupNotFoundException;
 import org.jivesoftware.openfire.user.UserManager;
 import org.jivesoftware.openfire.user.UserNotFoundException;
+import org.jivesoftware.openfire.vcard.VCardManager;
 
 import org.xmpp.packet.JID;
+import org.dom4j.Element;
 
 /**
  * User repository for openfire.
@@ -220,7 +222,19 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
             }
 
             org.jivesoftware.openfire.user.User user = users.iterator().next();
-            return getUser(user);
+            JSONObject json = getUser(user);
+
+            Group group = getAndCheckGroup();
+            boolean member = false;
+
+            for (JID jid : group.getAll())
+            {
+                if (jid.getNode().equals(json.getString(User.USER_NAME)))
+                {
+                   return json;
+                }
+            }
+            return null;
 
         } catch (Exception e) {
             Log.error("remove", e);
@@ -307,21 +321,57 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
 
         if (user != null)
         {
+            Group group = getAndCheckGroup();
+
             String url = user.getProperties().get(User.USER_URL);
-            String role = user.getProperties().get(User.USER_ROLE);
             String articleCount = user.getProperties().get(UserExt.USER_ARTICLE_COUNT);
             String pubArticleCount = user.getProperties().get(UserExt.USER_PUBLISHED_ARTICLE_COUNT);
             String avatar = user.getProperties().get(UserExt.USER_AVATAR);
+
+            String role = user.getProperties().get(User.USER_ROLE);
+
+            if (role == null)
+            {
+                Collection<JID> admins = group.getAdmins();
+                role = Role.DEFAULT_ROLE;
+
+                for (JID jid : admins)
+                {
+                    if (jid.getNode().equals(user.getUsername())) role = Role.ADMIN_ROLE;
+                }
+            }
+
+            if (avatar == null)
+            {
+                avatar = "";
+
+                Element vcard = VCardManager.getInstance().getVCard(user.getUsername());
+
+                if (vcard != null)
+                {
+                    Element photo = vcard.element("PHOTO");
+
+                    if (photo != null)
+                    {
+                        String type = photo.element("TYPE").getText();
+                        String binval = photo.element("BINVAL").getText();
+
+                        avatar = "data:" + type + ";base64," + binval.replace("\n", "").replace("\r", "");
+                    }
+                }
+            }
 
             requestJSONObject.put(User.USER_EMAIL, user.getEmail());
             requestJSONObject.put("oId", user.getUsername());
             requestJSONObject.put(User.USER_NAME, user.getUsername());
             requestJSONObject.put(User.USER_PASSWORD, user.getUsername());
+
+            requestJSONObject.put(User.USER_ROLE, role);
+            requestJSONObject.put(UserExt.USER_AVATAR, avatar);
+
             requestJSONObject.put(User.USER_URL, url != null ? url : getDefaultUrl());
-            requestJSONObject.put(User.USER_ROLE, role != null ? role : Role.DEFAULT_ROLE);
             requestJSONObject.put(UserExt.USER_ARTICLE_COUNT, articleCount != null ? articleCount : "0");
             requestJSONObject.put(UserExt.USER_PUBLISHED_ARTICLE_COUNT, pubArticleCount != null ? pubArticleCount : "0");
-            requestJSONObject.put(UserExt.USER_AVATAR, avatar != null ? avatar : "");
         }
 
         return requestJSONObject;
@@ -372,15 +422,15 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     {
         String serverScheme = "http";
         String serverHost = JiveGlobals.getProperty("xmpp.fqdn", XMPPServer.getInstance().getServerInfo().getHostname());
-        String serverPort = JiveGlobals.getProperty("httpbind.port.plain", "7070");
+        String serverPort = JiveGlobals.getProperty("solo.port.plain", JiveGlobals.getProperty("httpbind.port.plain", "7070"));
         String soloName = JiveGlobals.getProperty("solo.blog.name", "solo");
 
-        boolean secureBlog = JiveGlobals.getBooleanProperty("ofchat.blog.secure", true);
+        boolean secureBlog = JiveGlobals.getBooleanProperty("solo.blog.secure", true);
 
         if (secureBlog)
         {
             serverScheme = "https";
-            serverPort = JiveGlobals.getProperty("httpbind.port.secure", "7443");
+            serverPort = JiveGlobals.getProperty("solo.port.secure", JiveGlobals.getProperty("httpbind.port.secure", "7443"));
         }
         return serverScheme + "://" + serverHost + ":" + serverPort + "/" + soloName;
     }

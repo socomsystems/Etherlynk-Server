@@ -37,51 +37,35 @@ admin.article = {
     /**
      * 初始化上传组建
      */
-    initUploadFile: function (id) {
-        var filename = "";
-        $('#' + id).fileupload({
-            multipart: true,
-            url: "https://up.qbox.me",
-            add: function (e, data) {
-                filename = data.files[0].name;
+    initUploadFile: function (id)
+    {
+        var fileButton = document.getElementById(id);
 
-                data.submit();
+        fileButton.addEventListener('change', function(evt)
+        {
+            var files = evt.target.files;
+            $('#' + id + ' span').text('');
 
-                $('#' + id + ' span').text('uploading...');
-            },
-            formData: function (form) {
-                var data = form.serializeArray();
-                var ext = filename.substring(filename.lastIndexOf(".") + 1);
+            for (var i = 0; i < files.length; i++)
+            {
+                httpFileUpload.do( files[i],
 
-                data.push({name: 'key', value: getUUID() + "." + ext});
-                data.push({name: 'token', value: qiniu.qiniuUploadToken});
+                    function(getUrl, file)
+                    {
+                       $('#' + id).after('<div><a href="' + getUrl + '">' + file.name + '</a></div>');
+                    },
 
-                return data;
-            },
-            done: function (e, data) {
-                $('#' + id + ' span').text('');
-                var qiniuKey = data.result.key;
-                if (!qiniuKey) {
-                    alert("Upload error, please check Qiniu configurations");
-
-                    return;
-                }
-
-                $('#' + id).after('<div>![' + data.files[0].name + '](http://'
-                        + qiniu.qiniuDomain + qiniuKey + ')</div>');
-            },
-            fail: function (e, data) {
-                $('#' + id + ' span').text("Upload error, please check Qiniu configurations [" + data.errorThrown + "]");
+                    function(error, file)
+                    {
+                        alert("Upload " + file.name + " error: " + error);
+                    }
+                );
             }
-        }).on('fileuploadprocessalways', function (e, data) {
-            var currentFile = data.files[data.index];
-            if (data.files.error && currentFile.error) {
-                alert(currentFile.error);
-            }
-        });
+
+        }, false);
     },
     /**
-     * @description 获取文章并把值塞入发布文章页面 
+     * @description 获取文章并把值塞入发布文章页面
      * @param {String} id 文章 id
      * @param {Boolean} isArticle 文章或者草稿
      */
@@ -555,7 +539,7 @@ admin.article = {
         return false;
     },
     /**
-     * @description 取消发布 
+     * @description 取消发布
      * @param {Boolean} isAuto 是否为自动保存
      */
     unPublish: function (isAuto) {
@@ -657,7 +641,7 @@ admin.article = {
 };
 
 /**
- * @description 注册到 admin 进行管理 
+ * @description 注册到 admin 进行管理
  */
 admin.register.article = {
     "obj": admin.article,

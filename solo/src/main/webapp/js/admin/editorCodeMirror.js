@@ -81,98 +81,61 @@ Util.processClipBoard = function (clipboardData, cm) {
 };
 
 Util.initUploadFile = function (obj) {
-    var isImg = false;
+
     $('#' + obj.id).fileupload({
-        multipart: true,
-        pasteZone: obj.pasteZone,
-        dropZone: obj.pasteZone,
-        url: "https://up.qbox.me/",
-        paramName: "file",
-        add: function (e, data) {
-            if (data.files[0].name) {
-                var processName = data.files[0].name.match(/[a-zA-Z0-9.]/g).join('');
-                filename = getUUID() + '-' + processName;
 
-                // 文件名称全为中文时，移除 ‘-’
-                if (processName.split('.')[0] === '') {
-                    filename = getUUID() + processName;
-                }
-            } else {
-                filename = getUUID() + '.' + data.files[0].type.split("/")[1];
-            }
+        add: function (e, data)
+        {
+            var files = data.files;
 
-
-            if (window.File && window.FileReader && window.FileList && window.Blob) {
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(data.files[0]);
-                reader.onload = function (evt) {
-                    var fileBuf = new Uint8Array(evt.target.result.slice(0, 11));
-                    isImg = data.files[0].type.indexOf('image') === 0 ? true : false;
-
-                    data.submit();
-                }
-            } else {
-                data.submit();
-            }
-        },
-        formData: function (form) {
-            var data = form.serializeArray();
-
-            data.push({
-                name: 'key', value: "file/" + (new Date()).getFullYear() + "/"
-                + ((new Date()).getMonth() + 1) + '/' + filename
-            });
-
-            data.push({name: 'token', value: obj.qiniuUploadToken});
-
-            return data;
-        },
-        submit: function (e, data) {
             if (obj.editor.replaceRange) {
                 var cursor = obj.editor.getCursor();
                 obj.editor.replaceRange(obj.uploadingLabel, cursor, cursor);
             } else {
                 $('#' + obj.id + ' input').prop('disabled', false);
             }
-        },
-        done: function (e, data) {
-            var qiniuKey = data.result.key;
-            if (!qiniuKey) {
-                alert("Upload error");
 
-                return;
-            }
+            for (var i = 0; i < files.length; i++)
+            {
+                httpFileUpload.do( files[i],
 
-            if (obj.editor.replaceRange) {
-                var cursor = obj.editor.getCursor();
+                    function(getUrl, file)
+                    {
+                        if (obj.editor.replaceRange) {
+                            var cursor = obj.editor.getCursor();
+                            var isImg = files[0].type.indexOf('image') === 0 ? true : false;
 
-                if (isImg) {
-                    obj.editor.replaceRange('![' + filename + '](' + obj.qiniuDomain + '/' + qiniuKey + ') \n\n',
-                        CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
-                } else {
-                    obj.editor.replaceRange('[' + filename + '](' + obj.qiniuDomain + '/' + qiniuKey + ') \n\n',
-                        CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
-                }
-            } else {
-                obj.editor.$it.val('![' + filename + '](' + obj.qiniuDomain + '/' + qiniuKey + ') \n\n');
-                $('#' + obj.id + ' input').prop('disabled', false);
-            }
-        },
-        fail: function (e, data) {
-            alert("Upload error: " + data.errorThrown);
-            if (obj.editor.replaceRange) {
-                var cursor = obj.editor.getCursor();
-                obj.editor.replaceRange('',
-                    CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
-            } else {
-                $('#' + obj.id + ' input').prop('disabled', false);
+                            if (isImg) {
+                                obj.editor.replaceRange('![](' + getUrl + ') \n\n',
+                                    CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
+                            } else {
+                                obj.editor.replaceRange('[' + file.name + '](' + getUrl + ') \n\n',
+                                    CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
+                            }
+                        } else {
+                            obj.editor.$it.val('![' + file.name + '](' + getUrl + ') \n\n');
+                            $('#' + obj.id + ' input').prop('disabled', false);
+                        }
+                    },
+
+                    function(error, file)
+                    {
+                        alert("Upload " + file.name + " error: " + error);
+
+                        if (obj.editor.replaceRange) {
+                            var cursor = obj.editor.getCursor();
+                            obj.editor.replaceRange('',
+                                CodeMirror.Pos(cursor.line, cursor.ch - obj.uploadingLabel.length), cursor);
+                        } else {
+                            $('#' + obj.id + ' input').prop('disabled', false);
+                        }
+                    }
+                );
             }
         }
+
     }).on('fileuploadprocessalways', function (e, data) {
-        var currentFile = data.files[data.index];
-        if (data.files.error && currentFile.error) {
-            alert(currentFile.error);
-        }
+        console.log("Upload fileuploadprocessalways: ", data);
     });
 }
 
@@ -262,10 +225,8 @@ admin.editors.CodeMirror = {
         Util.initUploadFile({
             "id": conf.id + 'fileUpload',
             "pasteZone": $('#' + conf.id).next().next(),
-            "qiniuUploadToken": qiniu.qiniuUploadToken,
             "editor": commentEditor.codemirror,
-            "uploadingLabel": 'uploading...',
-            "qiniuDomain": '//' + qiniu.qiniuDomain
+            "uploadingLabel": 'uploading...'
         });
 
         this[conf.id] = commentEditor.codemirror;

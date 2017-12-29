@@ -152,14 +152,14 @@ public final class SoloServletListener extends AbstractServletListener {
 
             String serverScheme = "http";
             String serverHost = JiveGlobals.getProperty("xmpp.fqdn", XMPPServer.getInstance().getServerInfo().getHostname());
-            String serverPort = JiveGlobals.getProperty("httpbind.port.plain", "7070");
+            String serverPort = JiveGlobals.getProperty("solo.port.plain", JiveGlobals.getProperty("httpbind.port.plain", "7070"));
 
-            boolean secureBlog = JiveGlobals.getBooleanProperty("ofchat.blog.secure", true);
+            boolean secureBlog = JiveGlobals.getBooleanProperty("solo.blog.secure", true);
 
             if (secureBlog)
             {
                 serverScheme = "https";
-                serverPort = JiveGlobals.getProperty("httpbind.port.secure", "7443");
+                serverPort = JiveGlobals.getProperty("solo.port.secure", JiveGlobals.getProperty("httpbind.port.secure", "7443"));
             }
 
             LOGGER.info("web server url " + serverScheme + "://" + serverHost + ":" + serverPort);

@@ -15,8 +15,8 @@
         <div class="tip tip-msg"><span id="tipMsg"></span></div>
         <div id="allPanel">
             <div id="top">
-                <a href="http://b3log.org" target="_blank" class="hover">
-                    Solo
+                <a href="#" target="_blank" class="hover">
+                    ${blogTitle}
                 </a>
                
                 <span class="right"> 
@@ -166,6 +166,7 @@
         <script src="${staticServePath}/js/admin/plugin.js"></script>
         <script src="${staticServePath}/js/admin/main.js"></script>
         <script src="${staticServePath}/js/admin/about.js"></script>
+        <script src="${staticServePath}/js/admin/upload.js"></script>        
         <#else>
         <script src="${staticServePath}/js/admin/latkeAdmin${miniPostfix}.js?${staticResourceVersion}"></script>
         </#if>

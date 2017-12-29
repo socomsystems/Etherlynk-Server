@@ -387,7 +387,7 @@
             <tbody>
             <tr>
                 <th colspan="2">
-                    <a href="https://hacpai.com/article/1442418791213" target="_blank">${howConfigLabel}</a>
+                    ${howConfigLabel}
                     &nbsp;
                     <button onclick="admin.preference.updateQiniu()">${updateLabel}</button>
                 </th>

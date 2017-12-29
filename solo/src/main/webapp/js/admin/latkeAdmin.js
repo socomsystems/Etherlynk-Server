@@ -146,7 +146,7 @@ $.extend(Admin.prototype, {
             }
         }
 
-        // clear article 
+        // clear article
         if (tab !== "article" && admin.editors.articleEditor.setContent) {
             admin.article.clear();
         }
@@ -288,8 +288,8 @@ var admin = new Admin();/*
 admin.editors = {};
 
 /*
- * @description Create SoloEditor can use all editor. 
- *                e.g: TinyMCE, wnd 
+ * @description Create SoloEditor can use all editor.
+ *                e.g: TinyMCE, wnd
  * @constructor
  * @param conf 编辑器初始化参数
  * @param conf.kind 编辑器类型 simple/all
@@ -325,7 +325,7 @@ $.extend(SoloEditor.prototype, {
         if (type) {
             conf.type = type;
         }
-        
+
         var types = conf.type.split("-");
         if (types.length === 2) {
             conf.codeMirrorLanguage = types[1];
@@ -344,7 +344,7 @@ $.extend(SoloEditor.prototype, {
     },
     /*
      * @description 设置编辑器值
-     * @param {string} content 编辑器回填内容 
+     * @param {string} content 编辑器回填内容
      */
     setContent: function (content) {
         var conf = this.conf;
@@ -958,9 +958,9 @@ $.extend(TablePaginate.prototype, {
             }
         }
         $("#" + this.id + "Table").table(tableData);
-    
+
     },
-    
+
     /*
      * 初始化分页
      */
@@ -999,7 +999,7 @@ $.extend(TablePaginate.prototype, {
             }
         });
     },
-    
+
     /*
      * 更新 table & paginateion
      */
@@ -1016,11 +1016,11 @@ $.extend(TablePaginate.prototype, {
                 groupData: data
             }]
         });
-                    
+
         if (pageInfo.paginationPageCount === 0) {
             pageInfo.paginationPageCount = 1;
         }
-        
+
         $("#" + this.id + "Pagination").paginate("update", {
             pageCount: pageInfo.paginationPageCount,
             currentPage: currentPage,
@@ -1112,7 +1112,7 @@ admin.article = {
         });
     },
     /**
-     * @description 获取文章并把值塞入发布文章页面 
+     * @description 获取文章并把值塞入发布文章页面
      * @param {String} id 文章 id
      * @param {Boolean} isArticle 文章或者草稿
      */
@@ -1586,7 +1586,7 @@ admin.article = {
         return false;
     },
     /**
-     * @description 取消发布 
+     * @description 取消发布
      * @param {Boolean} isAuto 是否为自动保存
      */
     unPublish: function (isAuto) {
@@ -1688,7 +1688,7 @@ admin.article = {
 };
 
 /**
- * @description 注册到 admin 进行管理 
+ * @description 注册到 admin 进行管理
  */
 admin.register.article = {
     "obj": admin.article,
@@ -1738,7 +1738,7 @@ function getUUID() {
  * @version 1.0.0.9, May 28, 2013
  */
 
-admin.comment = { 
+admin.comment = {
     /*
      * 打开评论窗口
      * @id 该评论对应的 id
@@ -1748,10 +1748,10 @@ admin.comment = {
         this.getList(id, fromId);
         $("#" + fromId + "Comments").dialog("open");
     },
-    
+
     /*
      * 获取评论列表
-     * 
+     *
      * @onId 该评论对应的实体 id，可能是文章，也可能是自定义页面
      * @fromId 该评论来自文章/草稿/自定义页面
      */
@@ -1759,12 +1759,12 @@ admin.comment = {
         $("#loadMsg").text(Label.loadingLabel);
         $("#tipMsg").text("");
         $("#" + fromId + "Comments").html("");
-        
+
         var from = "article";
         if (fromId === "page") {
             from = "page";
         }
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/comments/" + from + "/" + onId ,
             type: "GET",
@@ -1775,14 +1775,14 @@ admin.comment = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 var comments = result.comments,
                 commentsHTML = '';
                 for (var i = 0; i < comments.length; i++) {
                     var hrefHTML = "<a target='_blank' href='" + comments[i].commentURL + "'>",
                     content = comments[i].commentContent,
                     contentHTML = Util.replaceEmString(content);
-                        
+
                     if (comments[i].commentURL === "http://") {
                         hrefHTML = "<a target='_blank'>";
                     }
@@ -1803,14 +1803,14 @@ admin.comment = {
                 if ("" === commentsHTML) {
                     commentsHTML = Label.noCommentLabel;
                 }
-                
+
                 $("#" + fromId + "Comments").html(commentsHTML);
-                
+
                 $("#loadMsg").text("");
             }
         });
     },
-    
+
     /*
      * 删除评论
      * @id 评论 id
@@ -1825,7 +1825,7 @@ admin.comment = {
             if (fromId === "page") {
                 from = "page";
             }
-            
+
             $.ajax({
                 url: latkeConfig.servePath + "/console/" + from + "/comment/" + id,
                 type: "DELETE",
@@ -1836,9 +1836,9 @@ admin.comment = {
                         $("#loadMsg").text("");
                         return;
                     }
-                    
+
                     admin.comment.getList(articleId, fromId);
-                    
+
                     $("#loadMsg").text("");
                 }
             });
@@ -1871,9 +1871,9 @@ admin.comment = {
 /* article-list 相关操作 */
 admin.articleList = {
     tablePagination:  new TablePaginate("article"),
-    
-    /* 
-     * 初始化 table, pagination, comments dialog 
+
+    /*
+     * 初始化 table, pagination, comments dialog
      */
     init: function (page) {
         this.tablePagination.buildTable([{
@@ -1907,7 +1907,7 @@ admin.articleList = {
         this.getList(page);
     },
 
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
@@ -1924,7 +1924,7 @@ admin.articleList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 var articles = result.articles,
                 articleData = [];
                 for (var i = 0; i < articles.length; i++) {
@@ -1935,7 +1935,7 @@ admin.articleList = {
                     articleData[i].comments = articles[i].articleCommentCount;
                     articleData[i].articleViewCount = articles[i].articleViewCount;
                     articleData[i].author = articles[i].authorName;
-                            
+
                     var topClass = articles[i].articlePutTop ? Label.cancelPutTopLabel : Label.putTopLabel;
                     articleData[i].expendRow = "<a target='_blank' href='" + latkeConfig.servePath + articles[i].articlePermalink + "'>" + Label.viewLabel + "</a>  \
                                 <a href='javascript:void(0)' onclick=\"admin.article.get('" + articles[i].oId + "', true)\">" + Label.updateLabel + "</a>  \
@@ -1943,32 +1943,32 @@ admin.articleList = {
                                 <a href='javascript:void(0)' onclick=\"admin.articleList.popTop(this, '" + articles[i].oId + "')\">" + topClass + "</a>  \
                                 <a href='javascript:void(0)' onclick=\"admin.comment.open('" + articles[i].oId + "', 'article')\">" + Label.commentLabel + "</a>";
                 }
-                    
+
                 that.tablePagination.updateTablePagination(articleData, pageNum, result.pagination);
-                
+
                 $("#loadMsg").text("");
             }
         });
     },
 
-    /* 
-     * 制定或者取消置顶 
+    /*
+     * 制定或者取消置顶
      * @it 触发事件的元素本身
      * @id 草稿 id
      */
     popTop: function (it, id) {
         $("#loadMsg").text(Label.loadingLabel);
         $("#tipMsg").text("");
-        
+
         var $it = $(it),
         ajaxUrl = "canceltop",
         tip = Label.putTopLabel;
-        
+
         if ($it.html() === Label.putTopLabel) {
             ajaxUrl = "puttop";
             tip = Label.cancelPutTopLabel;
         }
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/article/" + ajaxUrl + "/" + id,
             type: "PUT",
@@ -1979,7 +1979,7 @@ admin.articleList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                    
+
                 $it.html(tip);
                 $("#loadMsg").text("");
             }
@@ -1988,7 +1988,7 @@ admin.articleList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["article-list"] =  {
     "obj": admin.articleList,
@@ -2020,9 +2020,9 @@ admin.register["article-list"] =  {
 /* draft-list 相关操作 */
 admin.draftList = {
     tablePagination:  new TablePaginate("draft"),
-    
-    /* 
-     * 初始化 table, pagination, comments dialog 
+
+    /*
+     * 初始化 table, pagination, comments dialog
      */
     init: function (page) {
         this.tablePagination.buildTable([{
@@ -2056,14 +2056,14 @@ admin.draftList = {
         this.getList(page);
     },
 
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
     getList: function (pageNum) {
         $("#loadMsg").text(Label.loadingLabel);
         var that = this;
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/articles/status/unpublished/" + pageNum + "/" + Label.PAGE_SIZE + "/" +  Label.WINDOW_SIZE,
             type: "GET",
@@ -2074,7 +2074,7 @@ admin.draftList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 var articles = result.articles,
                 articleData = [];
                 for (var i = 0; i < articles.length; i++) {
@@ -2085,15 +2085,15 @@ admin.draftList = {
                     articleData[i].articleViewCount = articles[i].articleViewCount;
                     articleData[i].author = articles[i].authorName;
                     articleData[i].title = "<a class='no-underline' href='" + latkeConfig.servePath +
-                    articles[i].articlePermalink + "' target='_blank'>" + 
+                    articles[i].articlePermalink + "' target='_blank'>" +
                     articles[i].articleTitle + "</a><span class='table-tag'>" + articles[i].articleTags + "</span>";
                     articleData[i].expendRow = "<a href='javascript:void(0)' onclick=\"admin.article.get('" + articles[i].oId + "', false);\">" + Label.updateLabel + "</a>  \
                                 <a href='javascript:void(0)' onclick=\"admin.article.del('" + articles[i].oId + "', 'draft', '" + articles[i].articleTitle + "')\">" + Label.removeLabel + "</a>  \
                                 <a href='javascript:void(0)' onclick=\"admin.comment.open('" + articles[i].oId + "', 'draft')\">" + Label.commentLabel + "</a>";
                 }
-                    
+
                 that.tablePagination.updateTablePagination(articleData, pageNum, result.pagination);
-                
+
                 $("#loadMsg").text("");
             }
         });
@@ -2101,7 +2101,7 @@ admin.draftList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["draft-list"] =  {
     "obj": admin.draftList,
@@ -2141,7 +2141,7 @@ admin.pageList = {
     },
     id: "",
     type: "link",
-    /* 
+    /*
      * 初始化 table, pagination, comments dialog
      */
     init: function (page) {
@@ -2217,7 +2217,7 @@ admin.pageList = {
             }
         });
     },
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
@@ -2330,7 +2330,7 @@ admin.pageList = {
             }
         });
     },
-    /* 
+    /*
      * 删除自定义页面
      * @id 自定义页面 id
      * @title 自定义页面标题
@@ -2556,7 +2556,7 @@ admin.pageList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["page-list"] = {
     "obj": admin.pageList,
@@ -2742,7 +2742,7 @@ admin.others = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register.others = {
   "obj": admin.others,
@@ -2807,10 +2807,10 @@ admin.linkList = {
             index: "linkDescription",
             width: 360
         }]);
-    
+
         this.tablePagination.initPagination();
         this.getList(page);
-        
+
         $("#updateLink").dialog({
             width: 700,
             height: 210,
@@ -2819,9 +2819,9 @@ admin.linkList = {
         });
     },
 
-    /* 
+    /*
      * 根据当前页码获取链接列表
-     * 
+     *
      * @pagNum 当前页码
      */
     getList: function (pageNum) {
@@ -2831,7 +2831,7 @@ admin.linkList = {
         }
         this.pageInfo.currentPage = pageNum;
         var that = this;
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/links/" + pageNum + "/" + Label.PAGE_SIZE + "/" +  Label.WINDOW_SIZE,
             type: "GET",
@@ -2842,7 +2842,7 @@ admin.linkList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 var links = result.links;
                 var linkData = [];
                 admin.linkList.pageInfo.currentCount = links.length;
@@ -2868,7 +2868,7 @@ admin.linkList = {
                                 <span onclick="admin.linkList.changeOrder(' + links[i].oId + ', ' + i + ', \'down\');" class="icon-move-down"></span>\
                             </div>';
                     }
-                    
+
                     linkData[i].linkTitle = links[i].linkTitle;
                     linkData[i].linkAddress = "<a target='_blank' class='no-underline' href='" + links[i].linkAddress + "'>"
                     + links[i].linkAddress + "</a>";
@@ -2879,12 +2879,12 @@ admin.linkList = {
                 }
 
                 that.tablePagination.updateTablePagination(linkData, pageNum, result.pagination);
-                
+
                 $("#loadMsg").text("");
             }
         });
     },
-    
+
     /*
      * 添加链接
      */
@@ -2899,7 +2899,7 @@ admin.linkList = {
                     "linkDescription": $("#linkDescription").val()
                 }
             };
-            
+
             $.ajax({
                 url: latkeConfig.servePath + "/console/link/",
                 type: "POST",
@@ -2911,7 +2911,7 @@ admin.linkList = {
                         $("#loadMsg").text("");
                         return;
                     }
-                    
+
                     $("#linkTitle").val("");
                     $("#linkAddress").val("");
                     $("#linkDescription").val("");
@@ -2923,15 +2923,15 @@ admin.linkList = {
                     if (admin.linkList.pageInfo.pageCount !== parseInt(hashList[hashList.length - 1])) {
                         admin.setHashByPage(admin.linkList.pageInfo.pageCount);
                     }
-                    
+
                     admin.linkList.getList(admin.linkList.pageInfo.pageCount);
-                    
+
                     $("#loadMsg").text("");
                 }
             });
         }
     },
-    
+
     /*
      * 获取链接
      * @id 链接 id
@@ -2939,7 +2939,7 @@ admin.linkList = {
     get: function (id) {
         $("#loadMsg").text(Label.loadingLabel);
         $("#updateLink").dialog("open");
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/link/" + id,
             type: "GET",
@@ -2950,18 +2950,18 @@ admin.linkList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 admin.linkList.id = id;
-                
+
                 $("#linkTitleUpdate").val(result.link.linkTitle);
                 $("#linkAddressUpdate").val(result.link.linkAddress);
                 $("#linkDescriptionUpdate").val(result.link.linkDescription);
-                
+
                 $("#loadMsg").text("");
             }
         });
     },
-    
+
     /*
      * 更新链接
      */
@@ -2977,7 +2977,7 @@ admin.linkList = {
                     "linkDescription": $("#linkDescriptionUpdate").val()
                 }
             };
-            
+
             $.ajax({
                 url: latkeConfig.servePath + "/console/link/",
                 type: "PUT",
@@ -2990,15 +2990,15 @@ admin.linkList = {
                         $("#loadMsg").text("");
                         return;
                     }
-                    
+
                     admin.linkList.getList(admin.linkList.pageInfo.currentPage);
-                    
+
                     $("#loadMsg").text("");
                 }
             });
         }
     },
-    
+
     /*
      * 删除链接
      * @id 链接 id
@@ -3009,7 +3009,7 @@ admin.linkList = {
         if (isDelete) {
             $("#loadMsg").text(Label.loadingLabel);
             $("#tipMsg").text("");
-            
+
             $.ajax({
                 url: latkeConfig.servePath + "/console/link/" + id,
                 type: "DELETE",
@@ -3020,27 +3020,27 @@ admin.linkList = {
                         $("#loadMsg").text("");
                         return;
                     }
-                    
+
                     var pageNum = admin.linkList.pageInfo.currentPage;
                     if (admin.linkList.pageInfo.currentCount === 1 && admin.linkList.pageInfo.pageCount !== 1 &&
                         admin.linkList.pageInfo.currentPage === admin.linkList.pageInfo.pageCount) {
                         admin.linkList.pageInfo.pageCount--;
                         pageNum = admin.linkList.pageInfo.pageCount;
                     }
-                    
+
                     var hashList = window.location.hash.split("/");
                     if (pageNum !== parseInt(hashList[hashList.length - 1])) {
                         admin.setHashByPage(pageNum);
                     }
-                    
+
                     admin.linkList.getList(pageNum);
-                    
+
                     $("#loadMsg").text("");
                 }
             });
         }
     },
-    
+
     /*
      * 验证字段
      * @status 更新或者添加时进行验证
@@ -3063,19 +3063,19 @@ admin.linkList = {
         }
         return false;
     },
-    
+
     /*
      * 调换顺序
      */
     changeOrder: function (id, order, status) {
         $("#loadMsg").text(Label.loadingLabel);
         $("#tipMsg").text("");
-        
+
         var requestJSONObject = {
             "oId": id.toString(),
             "direction": status
         };
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/link/order/",
             type: "PUT",
@@ -3083,10 +3083,10 @@ admin.linkList = {
             data: JSON.stringify(requestJSONObject),
             success: function(result, textStatus){
                 $("#tipMsg").text(result.msg);
-                
+
                 // Refershes the link list
                 admin.linkList.getList(admin.linkList.pageInfo.currentPage);
-                
+
                 $("#loadMsg").text("");
             }
         });
@@ -3094,7 +3094,7 @@ admin.linkList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["link-list"] =  {
     "obj": admin.linkList,
@@ -3165,7 +3165,7 @@ admin.preference = {
                 $("#relevantArticlesDisplayCount").val(preference.relevantArticlesDisplayCount);
                 $("#randomArticlesDisplayCount").val(preference.randomArticlesDisplayCount);
                 $("#keyOfSolo").val(preference.keyOfSolo);
-                
+
                 "true" === preference.enableArticleUpdateHint ? $("#enableArticleUpdateHint").attr("checked", "checked") : $("#enableArticleUpdateHint").removeAttr("checked");
                 "true" === preference.allowVisitDraftViaPermalink ? $("#allowVisitDraftViaPermalink").attr("checked", "checked") : $("allowVisitDraftViaPermalink").removeAttr("checked");
                 "true" === preference.allowRegister ? $("#allowRegister").attr("checked", "checked") : $("#allowRegister").removeAttr("checked");
@@ -3207,7 +3207,7 @@ admin.preference = {
                 $("#editorType").val(preference.editorType);
                 $("#feedOutputMode").val(preference.feedOutputMode);
                 $("#feedOutputCnt").val(preference.feedOutputCnt);
-                
+
                 $("#loadMsg").text("");
             }
         });
@@ -3230,7 +3230,7 @@ admin.preference = {
             }
         });
     },
-    /* 
+    /*
      * @description 参数校验
      */
     validate: function () {
@@ -3383,7 +3383,7 @@ admin.preference = {
                 if (result.sc) {
                     window.location.reload();
                 }
-                
+
                 $("#tipMsg").text(result.msg);
                 $("#loadMsg").text("");
             }
@@ -3392,7 +3392,7 @@ admin.preference = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["preference"] = {
     "obj": admin.preference,
@@ -3432,7 +3432,7 @@ admin.pluginList = {
         pageCount: 1,
         currentPage: 1
     },
-    /* 
+    /*
      * 初始化 table, pagination
      */
     init: function(page) {
@@ -3467,7 +3467,7 @@ admin.pluginList = {
         });
         this.getList(page);
     },
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
@@ -3568,7 +3568,7 @@ admin.pluginList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["plugin-list"] = {
     "obj": admin.pluginList,
@@ -3612,7 +3612,7 @@ admin.userList = {
         'oId': "",
         "userRole": ""
     },
-    /* 
+    /*
      * 初始化 table, pagination
      */
     init: function(page) {
@@ -3643,7 +3643,7 @@ admin.userList = {
             "hideFooter": true
         });
     },
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
@@ -3783,7 +3783,7 @@ admin.userList = {
                 } else {
                     $userEmailUpdate.removeAttr("disabled");
                 }
-                
+
                 $("#userURLUpdate").val(result.user.userURL);
                 $("#userPasswordUpdate").val(result.user.userPassword);
                 $("#userAvatarUpdate").val(result.user.userAvatar);
@@ -3932,7 +3932,7 @@ admin.userList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["user-list"] = {
     "obj": admin.userList,
@@ -3970,7 +3970,7 @@ admin.categoryList = {
         pageCount: 1,
         currentPage: 1
     },
-    /* 
+    /*
      * 初始化 table, pagination
      */
     init: function(page) {
@@ -4036,7 +4036,7 @@ admin.categoryList = {
             }
         });
     },
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
@@ -4299,7 +4299,7 @@ admin.categoryList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["category-list"] = {
     "obj": admin.categoryList,
@@ -4334,9 +4334,9 @@ admin.commentList = {
     pageInfo: {
         currentPage: 1
     },
-    
-    /* 
-     * 初始化 table, pagination, comments dialog 
+
+    /*
+     * 初始化 table, pagination, comments dialog
      */
     init: function (page) {
         this.tablePagination.buildTable([{
@@ -4359,14 +4359,14 @@ admin.commentList = {
         this.getList(page);
     },
 
-    /* 
+    /*
      * 根据当前页码获取列表
      * @pagNum 当前页码
      */
     getList: function (pageNum) {
         var that = this;
         $("#loadMsg").text(Label.loadingLabel);
-        
+
         $.ajax({
             url: latkeConfig.servePath + "/console/comments/" + pageNum + "/" + Label.PAGE_SIZE + "/" +  Label.WINDOW_SIZE,
             type: "GET",
@@ -4377,7 +4377,7 @@ admin.commentList = {
                     $("#loadMsg").text("");
                     return;
                 }
-                
+
                 that.pageInfo.currentPage = pageNum;
                 var comments = result.comments,
                 commentsData = [];
@@ -4386,48 +4386,48 @@ admin.commentList = {
                     if (comments[i].type === "pageComment") {
                         type = "Page"
                     }
-                    
+
                     commentsData[i] = {};
-                    
-                    commentsData[i].content = Util.replaceEmString(comments[i].commentContent) + 
-                    "<span class='table-tag'> on &nbsp;&nbsp;</span><a href='" + latkeConfig.servePath + comments[i].commentSharpURL + 
+
+                    commentsData[i].content = Util.replaceEmString(comments[i].commentContent) +
+                    "<span class='table-tag'> on &nbsp;&nbsp;</span><a href='" + latkeConfig.servePath + comments[i].commentSharpURL +
                     "' target='_blank'>" + comments[i].commentTitle +
                     "</a>";
-                
+
                     commentsData[i].expendRow = "<a href='javascript:void(0)' onclick=\"admin.commentList.del('" +
                     comments[i].oId + "', '" + type + "')\">" + Label.removeLabel + "</a>";
-                
-                    commentsData[i].title = "<img class='small-head' src='" + 
+
+                    commentsData[i].title = "<img class='small-head' src='" +
                     comments[i].commentThumbnailURL + "'/>";
                     if ("http://" === comments[i].commentURL) {
                         commentsData[i].title += comments[i].commentName;
                     } else {
                         commentsData[i].title += "<a href='" + comments[i].commentURL +
-                        "' target='_blank' class='no-underline'>" + comments[i].commentName + 
+                        "' target='_blank' class='no-underline'>" + comments[i].commentName +
                         "</a>";
-                    }                    
+                    }
                     commentsData[i].title += "<br/><a href='mailto:" + comments[i].commentEmail +
-                    "'>" + comments[i].commentEmail + "</a>";                
-                    
+                    "'>" + comments[i].commentEmail + "</a>";
+
                     commentsData[i].date = $.bowknot.getDate(comments[i].commentTime);
                 }
-                
+
                 that.tablePagination.updateTablePagination(commentsData, pageNum, result.pagination);
-                
+
                 $("#loadMsg").text("");
             }
         });
     },
-    
-    /* 
+
+    /*
      * 删除评论
-     * @id 评论 id 
+     * @id 评论 id
      * @type 评论类型：文章/自定义页面
      */
     del: function (id, type) {
         if (confirm(Label.confirmRemoveLabel + Label.commentLabel + "?")) {
             $("#loadMsg").text(Label.loadingLabel);
-            
+
             $.ajax({
                 url: latkeConfig.servePath + "/console/" + type.toLowerCase() + "/comment/" + id,
                 type: "DELETE",
@@ -4438,9 +4438,9 @@ admin.commentList = {
                         $("#loadMsg").text("");
                         return;
                     }
-                    
+
                     admin.commentList.getList(admin.commentList.pageInfo.currentPage);
-                    
+
                     $("#loadMsg").text("");
                 }
             });
@@ -4449,7 +4449,7 @@ admin.commentList = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["comment-list"] =  {
     "obj": admin.commentList,
@@ -4479,7 +4479,7 @@ admin.register["comment-list"] =  {
 var plugins = {};
 admin.plugin = {
     plugins: [],
-    
+
     /*
      * 添加插件进行管理
      */
@@ -4488,14 +4488,14 @@ admin.plugin = {
         data.isInit = false;
         data.hash = data.path.replace("/", "#") + "/" + data.id;
         this.plugins.push(data);
-        
+
         var pathList = this._analysePath(data.path);
         // 添加一二级 Tab
         if (data.index && pathList.length < 2) {
             this._addNew(data, pathList);
         }
     },
-    
+
     /*
      * 根据当前 hash 初始化或刷新插件
      */
@@ -4505,7 +4505,7 @@ admin.plugin = {
             var data = pluginList[i];
             var pathList = this._analysePath(data.path),
             isCurrentPlugin = false;
-            
+
             // 根据当前 hash 和插件 path 判别是非为当前插件
             if (data.index && window.location.hash.indexOf(data.hash) > -1) {
                 isCurrentPlugin = true;
@@ -4513,12 +4513,12 @@ admin.plugin = {
                 (window.location.hash === "#main" && data.path.indexOf("/main/panel") > -1)) {
                 isCurrentPlugin = true;
             }
-            
+
             if (isCurrentPlugin) {
                 if (data.isInit) {
                     // 插件已经初始化过，只需进行刷新
                     if (plugins[data.id].refresh) {
-                        plugins[data.id].refresh(tags.page);                           
+                        plugins[data.id].refresh(tags.page);
                     }
                 } else {
                     // 初始化插件
@@ -4526,14 +4526,14 @@ admin.plugin = {
                         this._addToExist(data, pathList);
                     } else if (pathList.length === 2) {
                         this._addNew(data, pathList);
-                    } 
+                    }
                     plugins[data.id].init(tags.page);
                     data.isInit = true;
                 }
             }
-        }  
+        }
     },
-    
+
     /*
      * 解析添加路径
      */
@@ -4542,7 +4542,7 @@ admin.plugin = {
         paths.splice(0, 1);
         return paths;
     },
-    
+
     /*
      * 添加一二级 tab
      */
@@ -4559,14 +4559,14 @@ admin.plugin = {
             admin.tools.push("#" + data.id);
             data.target = $("#tabTools>li").get(data.index - 1);
         }
-        
+
         if (!data.target) {
             alert("data.index is error!");
         }
-        
+
         $("#tabs").tabs("add", data);
     },
-    
+
     /*
      * 在已有页面上进行添加
      */
@@ -4616,7 +4616,7 @@ admin.main = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register.main =  {
     "obj": admin.main,
@@ -4675,7 +4675,7 @@ admin.about = {
 };
 
 /*
- * 注册到 admin 进行管理 
+ * 注册到 admin 进行管理
  */
 admin.register["about"] = {
     "obj": admin.about,

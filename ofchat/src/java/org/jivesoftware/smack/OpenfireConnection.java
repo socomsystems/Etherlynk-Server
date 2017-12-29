@@ -964,6 +964,10 @@ public class OpenfireConnection extends AbstractXMPPConnection implements ChatMe
                 Log.warn("handleUpload response " + response.putUrl + " " + response.getUrl);
                 resp.put("get", response.getUrl);
                 resp.put("put", response.putUrl);
+
+                uploadConnection.disconnect(new Presence(Presence.Type.unavailable));
+                assistConnections.remove(userId);
+
                 return resp;
 
             } else {
