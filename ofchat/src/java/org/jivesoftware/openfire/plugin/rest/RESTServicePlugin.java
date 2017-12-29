@@ -243,7 +243,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         try
         {
-            loadSolo();
+            //loadSolo();
         }
         catch ( Exception ex )
         {
@@ -336,7 +336,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         SessionEventDispatcher.removeListener(this);
 
         try {
-            unloadSolo();
+            //unloadSolo();
         } catch (Exception e) {}
     }
 
