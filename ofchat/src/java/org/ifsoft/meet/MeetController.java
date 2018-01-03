@@ -396,6 +396,9 @@ public class MeetController {
         String publicKey = user.getProperties().get("vapid.public.key");
         String privateKey = user.getProperties().get("vapid.private.key");
 
+        if (publicKey == null) publicKey = JiveGlobals.getProperty("vapid.public.key", null);
+        if (privateKey == null) privateKey = JiveGlobals.getProperty("vapid.private.key", null);
+
         try {
             if (publicKey != null && privateKey != null)
             {
@@ -521,37 +524,37 @@ public class MeetController {
 
     public boolean inviteToJvb(String username, String jid)
     {
-		if (SessionManager.getInstance().getSessions(username).size() > 0)
-		{
-			String room = username + "-" + System.currentTimeMillis();
-			String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+        if (SessionManager.getInstance().getSessions(username).size() > 0)
+        {
+            String room = username + "-" + System.currentTimeMillis();
+            String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
 
-			try {
-				JID jid1 = new JID(username + "@" + domain);
-				JID jid2 = new JID(jid);
+            try {
+                JID jid1 = new JID(username + "@" + domain);
+                JID jid2 = new JID(jid);
 
-				String confJid = room + "@conference." + domain;
+                String confJid = room + "@conference." + domain;
 
-				Message message1 = new Message();
-				message1.setFrom(jid1);
-				message1.setTo(jid2);
-				Element x1 = message1.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid);
-				x1.addElement("invite").addAttribute("from", jid1.toString());
-				XMPPServer.getInstance().getRoutingTable().routePacket(jid2, message1, true);
+                Message message1 = new Message();
+                message1.setFrom(jid1);
+                message1.setTo(jid2);
+                Element x1 = message1.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid);
+                x1.addElement("invite").addAttribute("from", jid1.toString());
+                XMPPServer.getInstance().getRoutingTable().routePacket(jid2, message1, true);
 
-				Message message2 = new Message();
-				message2.setFrom(jid2);
-				message2.setTo(jid1);
-				Element x2 = message2.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid).addAttribute("autoaccept", "true");
-				x2.addElement("invite").addAttribute("from", jid2.toString());
-				XMPPServer.getInstance().getRoutingTable().routePacket(jid1, message2, true);
+                Message message2 = new Message();
+                message2.setFrom(jid2);
+                message2.setTo(jid1);
+                Element x2 = message2.addChildElement("x", "jabber:x:conference").addAttribute("jid", confJid).addAttribute("autoaccept", "true");
+                x2.addElement("invite").addAttribute("from", jid2.toString());
+                XMPPServer.getInstance().getRoutingTable().routePacket(jid1, message2, true);
 
-				return true;
+                return true;
 
-			} catch (Exception e) {
-				Log.error("inviteToJvb", e);
-			}
-		}
-		return false;
+            } catch (Exception e) {
+                Log.error("inviteToJvb", e);
+            }
+        }
+        return false;
     }
 }
