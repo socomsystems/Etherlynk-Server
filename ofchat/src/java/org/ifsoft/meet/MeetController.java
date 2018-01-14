@@ -419,7 +419,7 @@ public class MeetController {
                             HttpResponse response = pushService.send(notification);
                             int statusCode = response.getStatusLine().getStatusCode();
 
-                            ok = (200 == statusCode) || (201 == statusCode);
+                            ok = ok && (200 == statusCode) || (201 == statusCode);
 
                             Log.debug("postWebPush delivered "  + statusCode + "\n" + response);
 

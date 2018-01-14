@@ -236,6 +236,8 @@
             <artifactId>jsr311-api</artifactId>
             <version>1.1.1</version>
         </dependency>
+
+        <!-- web push dependencies -->
         
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
@@ -279,6 +281,8 @@
             <version>1.72</version>
         </dependency>
 
+        <!-- smack dependencies -->
+        
         <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-core -->
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
