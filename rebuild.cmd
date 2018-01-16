@@ -1,4 +1,4 @@
-call mvn package
+call mvn clean package
 
 rd "C:\openfire_4_2_1\plugins\ofmeet" /q /s
 rd "C:\openfire_4_2_1\plugins\offocus" /q /s
