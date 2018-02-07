@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- {openfire.version} used by managed dependencies, but also in the pom files of various modules. -->
-        <openfire.version>4.2.0-SNAPSHOT</openfire.version>
+        <openfire.version>4.2.0</openfire.version>
     </properties>
 
     <modules>
@@ -96,12 +96,12 @@
             <dependency>
                 <groupId>org.jitsi</groupId>
                 <artifactId>jicofo</artifactId>
-                <version>1.1-20171130.163929-11</version>
+                <version>1.1-20180103.054218-14</version>
             </dependency>
             <dependency>
                 <groupId>org.jitsi</groupId>
                 <artifactId>jitsi-videobridge-openfire</artifactId>
-                <version>2.2-20171103.213218-1</version>
+                <version>2.3-20180131.155320-1</version>
             </dependency>
             <dependency>
                 <groupId>org.igniterealtime.openfire</groupId>

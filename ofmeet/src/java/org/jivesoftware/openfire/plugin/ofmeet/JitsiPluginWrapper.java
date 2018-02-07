@@ -43,10 +43,6 @@ public class JitsiPluginWrapper
         // Disable health check. Our JVB is not an external component, so there's no need to check for its connectivity.
         System.setProperty( "org.jitsi.videobridge.PING_INTERVAL", "-1" );
 
-        // enable recording
-        System.setProperty("org.jitsi.videobridge.ENABLE_MEDIA_RECORDING", "true");
-        System.setProperty("org.jitsi.videobridge.MEDIA_RECORDING_PATH", pluginDirectory.getAbsolutePath() + File.separator + "classes" + File.separator + "recordings");
-
         jitsiPlugin = new PluginImpl();
         jitsiPlugin.initializePlugin( manager, pluginDirectory );
         Log.trace( "Successfully initialized Jitsi Videobridge." );

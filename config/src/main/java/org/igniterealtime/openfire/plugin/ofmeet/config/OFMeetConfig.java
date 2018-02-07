@@ -190,7 +190,7 @@ public class OFMeetConfig
     {
         // These should match the implementations that are provided in the defaultToolbarButtons.js file in jitsi-meet.
         // The order of this list is used as the default ordering of the buttons.
-        return JiveGlobals.getListProperty( "ofmeet.buttons.implemented", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "hangup", "profile", "contacts", "chat", "recording", "etherpad", "sharedvideo", "sip", "dialpad", "settings", "raisehand" ) );
+        return JiveGlobals.getListProperty( "ofmeet.buttons.implemented", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "fodeviceselection", "hangup", "profile", "contacts", "info", "chat", "recording", "etherpad", "sharedvideo", "sip", "dialpad", "settings", "raisehand", "videoquality", "filmstrip" ) );
     }
 
     public void resetButtonsImplemented()
@@ -205,7 +205,7 @@ public class OFMeetConfig
 
     public List<String> getButtonsEnabled()
     {
-        return JiveGlobals.getListProperty( "ofmeet.buttons.enabled", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "hangup", "profile", "contacts", "chat", "recording", "etherpad", "sharedvideo", "sip", "dialpad", "settings", "raisehand" ) );
+        return JiveGlobals.getListProperty( "ofmeet.buttons.enabled", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "fodeviceselection", "hangup", "profile", "contacts", "info", "chat", "recording", "etherpad", "sharedvideo", "sip", "dialpad", "settings", "raisehand", "videoquality", "filmstrip" ) );
     }
 
     public void resetButtonsEnabled()
@@ -220,7 +220,7 @@ public class OFMeetConfig
 
     public List<String> getButtonsOnTop()
     {
-        return JiveGlobals.getListProperty( "ofmeet.buttons.onTop", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "hangup" ) );
+        return JiveGlobals.getListProperty( "ofmeet.buttons.onTop", Arrays.asList( "microphone", "camera", "desktop", "invite", "fullscreen", "fodeviceselection", "hangup" ) );
     }
 
     public void resetButtonsOnTop()
@@ -465,5 +465,95 @@ public class OFMeetConfig
     public void resetInviteOptions()
     {
         JiveGlobals.deleteProperty( "org.jitsi.videobridge.ofmeet.inviteOptions" );
+    }
+
+    public void setP2pEnabled( boolean p2pEnabled )
+    {
+        JiveGlobals.setProperty( "ofmeet.p2p.enabled", Boolean.toString( p2pEnabled ) );
+    }
+
+    public boolean getP2pEnabled()
+    {
+        return JiveGlobals.getBooleanProperty( "ofmeet.p2p.enabled", true );
+    }
+
+    public void resetP2pEnabled()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.p2p.enabled" );
+    }
+
+    public void setP2pPreferH264( boolean p2pPreferH264 )
+    {
+        JiveGlobals.setProperty( "ofmeet.p2p.preferH264", Boolean.toString( p2pPreferH264 ) );
+    }
+
+    public boolean getP2pPreferH264()
+    {
+        return JiveGlobals.getBooleanProperty( "ofmeet.p2p.preferH264", true );
+    }
+
+    public void resetP2pPreferH264()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.p2p.preferH264" );
+    }
+
+    public void setP2pDisableH264( boolean p2pDisableH264 )
+    {
+        JiveGlobals.setProperty( "ofmeet.p2p.disableH264", Boolean.toString( p2pDisableH264 ) );
+    }
+
+    public boolean getP2pDisableH264()
+    {
+        return JiveGlobals.getBooleanProperty( "ofmeet.p2p.disableH264", true );
+    }
+
+    public void resetP2pDisableH264()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.p2p.disableH264" );
+    }
+
+    public void setP2pUseStunTurn( boolean p2pUseStunTurn )
+    {
+        JiveGlobals.setProperty( "ofmeet.p2p.useStunTurn", Boolean.toString( p2pUseStunTurn ) );
+    }
+
+    public boolean getP2pUseStunTurn()
+    {
+        return JiveGlobals.getBooleanProperty( "ofmeet.p2p.useStunTurn", false );
+    }
+
+    public void resetP2pUseStunTurn()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.p2p.useStunTurn" );
+    }
+
+    public void setWebrtcIceUdpDisable( boolean webrtcIceUdpDisable )
+    {
+        JiveGlobals.setProperty( "ofmeet.webrtcIceUdpDisable", Boolean.toString( webrtcIceUdpDisable ) );
+    }
+
+    public boolean getWebrtcIceUdpDisable()
+    {
+        return JiveGlobals.getBooleanProperty("ofmeet.webrtcIceUdpDisable", false );
+    }
+
+    public void resetWebrtcIceUdpDisable()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.webrtcIceUdpDisable" );
+    }
+
+    public void setWebrtcIceTcpDisable( boolean webrtcIceTcpDisable )
+    {
+        JiveGlobals.setProperty( "ofmeet.webrtcIceTcpDisable", Boolean.toString( webrtcIceTcpDisable ) );
+    }
+
+    public boolean getWebrtcIceTcpDisable()
+    {
+        return JiveGlobals.getBooleanProperty("ofmeet.webrtcIceTcpDisable", false );
+    }
+
+    public void resetWebrtcIceTcpDisable()
+    {
+        JiveGlobals.deleteProperty( "ofmeet.webrtcIceTcpDisable" );
     }
 }

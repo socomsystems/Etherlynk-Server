@@ -15,14 +15,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+  
 <plugin>
     <class>org.jivesoftware.openfire.plugin.ofmeet.FocusPlugin</class>
-    <name>Etherlynk Focus</name>
-    <description>The focus entity that manages meetings</description>
+    <name>${project.name}</name>
+    <description>${project.description}</description>
     <author>Ignite Realtime, Etherlynk Project</author>
-    <version>0.9.3 Release 2</version>
-    <date>12/06/2017</date>
+    <version>0.9.3 Release 3</version>
+    <date>02/06/2018</date>
     <minServerVersion>4.1.5</minServerVersion>
-    <minJavaVersion>1.8</minJavaVersion>
+    <minJavaVersion>1.8</minJavaVersion> 
 </plugin>

@@ -15,14 +15,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+  
 <plugin>
     <class>org.jivesoftware.openfire.plugin.ofswitch.OfSwitchPlugin</class>
     <name>Etherlynk Switch</name>
     <description>Media Control Unit for media mixing and routing</description>
     <author>Ignite Realtime, Etherlynk Project</author>
     <version>0.9.3 Release 3</version>
-    <date>01/31/2017</date>
+    <date>02/06/2018</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>    
     <adminconsole>

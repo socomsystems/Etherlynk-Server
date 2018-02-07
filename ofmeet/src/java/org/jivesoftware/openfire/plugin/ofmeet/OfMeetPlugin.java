@@ -54,8 +54,7 @@ import org.jivesoftware.util.PropertyEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.Message;
-import org.xmpp.packet.JID;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.InetAddress;
@@ -69,7 +68,6 @@ import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Bundles various Jitsi components into one, standalone Openfire plugin.
@@ -94,7 +92,6 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
 
     private final JitsiPluginWrapper jitsiPluginWrapper;
     private final MeetingPlanner meetingPlanner;
-
 
     public OfMeetPlugin()
     {
@@ -170,7 +167,6 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
 
         Security.addProvider( new OfMeetSaslProvider() );
         SASLAuthentication.addSupportedMechanism( OfMeetSaslServer.MECHANISM_NAME );
-
     }
 
     public void destroyPlugin()
@@ -226,7 +222,6 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
         }
 
         ClusterManager.removeListener(this);
-
     }
 
     protected void loadPublicWebApp() throws Exception
@@ -500,34 +495,34 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
         return this.jitsiPluginWrapper.getVideobridge();
     }
 
-	public void setRecording(String roomName, String path)
-	{
-		Videobridge videobridge = getVideobridge();
+    public void setRecording(String roomName, String path)
+    {
+        Videobridge videobridge = getVideobridge();
 
-		if (path == null)
-		{
-			path = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + "ofmeet-cdn"  + File.separator + "download";
-		}
+        if (path == null)
+        {
+            path = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + "ofmeet-cdn"  + File.separator + "download";
+        }
 
-		for (Conference conference : videobridge.getConferences())
-		{
-			String room = conference.getName().toString();
+        for (Conference conference : videobridge.getConferences())
+        {
+            String room = conference.getName().toString();
 
-			if (room != null && !"".equals(room) && roomName.equals(room))
-			{
-				for (Content content : conference.getContents())
-				{
-					if (content != null && !content.isExpired() && !content.isRecording() && !"data".equals(content.getMediaType().toString()))
-					{
-						Log.info("set videobridge recording " + roomName + " " + content.getMediaType().toString() + " " + path);
-						content.setRecording(true, path);
-						break;
-					}
-				}
-				break;
-			}
-		}
-	}
+            if (room != null && !"".equals(room) && roomName.equals(room))
+            {
+                for (Content content : conference.getContents())
+                {
+                    if (content != null && !content.isExpired() && !content.isRecording() && !"data".equals(content.getMediaType().toString()))
+                    {
+                        Log.info("set videobridge recording " + roomName + " " + content.getMediaType().toString() + " " + path);
+                        content.setRecording(true, path);
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
 
     //-------------------------------------------------------
     //
@@ -622,5 +617,4 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
     {
 
     }
-
 }

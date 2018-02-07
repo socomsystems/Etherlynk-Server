@@ -211,8 +211,8 @@ if ( sctpConnection != null )
 
 <br/>
 <form action="ofmeet-conference.jsp">
-    <input type="hidden" name="confid" value="<%= confid %>">
-    <input type="hidden" name="focus" value="<%= focus != null ? focus : "" %>">
+    <input type="hidden" name="confid" value="<%=URLEncoder.encode( confid, "UTF-8")%>">
+    <input type="hidden" name="focus" value="<%=URLEncoder.encode( focus != null ? focus : "", "UTF-8" )%>">
     <center>
         <input type="submit" name="back" value="<fmt:message key="ofmeet.back" />">
     </center>
