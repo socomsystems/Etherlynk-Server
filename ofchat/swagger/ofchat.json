@@ -1325,6 +1325,63 @@
                 }
             }
         },
+        "/restapi/v1/chat/{username}/enroll":{
+            "get":{
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"username",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "name":"body",
+                        "in":"body",
+                        "required":true,
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            },
+            "delete":{
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"username",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
+            }
+        },
         "/restapi/v1/chat/{username}/login":{
             "post":{
                 "consumes":[
@@ -1338,6 +1395,12 @@
                         "name":"username",
                         "in":"path",
                         "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"totp",
+                        "in":"query",
+                        "required":false
                     },
                     {
                         "name":"body",

@@ -26,6 +26,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xc.*;
 
 import org.jivesoftware.openfire.XMPPServer;
+import org.jivesoftware.openfire.user.User;
 import org.jivesoftware.util.*;
 
 import org.jivesoftware.openfire.plugin.rest.controller.UserServiceController;
@@ -61,6 +62,7 @@ import org.xmpp.packet.*;
 import org.jivesoftware.openfire.archive.*;
 
 import org.jivesoftware.smack.OpenfireConnection;
+import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 
 
 @Path("restapi/v1/chat")
@@ -87,13 +89,79 @@ public class ChatService {
     //-------------------------------------------------------
 
     @POST
-    @Path("/{username}/login")
+    @Path("/{username}/enroll")
     @Produces(MediaType.TEXT_PLAIN)
-    public String login(@PathParam("username") String username, String password) throws ServiceException
+    public String getTotpQrCode(@PathParam("username") String username, String password) throws ServiceException
     {
-        Log.debug("login " + username + "\n" + password);
+        Log.debug("addTotp " + username + "\n" + password);
 
         try {
+            User user = userService.getUser(username);
+            String base32Secret = user.getProperties().get("ofchat.totp.secret");
+
+            if (base32Secret == null)
+            {
+                base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+                user.getProperties().put("ofchat.totp.secret", base32Secret);
+            }
+            return TimeBasedOneTimePasswordUtil.qrImageUrl(username + "@" + server.getServerInfo().getXMPPDomain(), base32Secret);
+
+        } catch (Exception e) {
+            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        }
+    }
+
+
+    @DELETE
+    @Path("/{username}/enroll")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response deleteTotpQr(@PathParam("username") String username) throws ServiceException
+    {
+        Log.debug("deleteTotpQr " + username);
+
+        try {
+            User user = userService.getUser(username);
+            String base32Secret = user.getProperties().get("ofchat.totp.secret");
+
+            if (base32Secret != null)
+            {
+                user.getProperties().remove("ofchat.totp.secret");
+            }
+            return Response.status(Response.Status.OK).build();
+
+        } catch (Exception e) {
+            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        }
+    }
+
+
+    @POST
+    @Path("/{username}/login")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String login(@PathParam("username") String username, @DefaultValue("") @QueryParam("totp") String totp, String password) throws ServiceException
+    {
+        Log.debug("login " + username + " " + totp + "\n" + password);
+
+        try {
+            if (totp != null && !"".equals(totp))
+            {
+                User user = userService.getUser(username);
+                String base32Secret = user.getProperties().get("ofchat.totp.secret");
+
+                if (base32Secret != null)
+                {
+                    String code = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(base32Secret);
+
+                    if (!totp.equals(code))
+                    {
+                        throw new ServiceException("Exception", "two-factor authentication (2fa) failure", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                    }
+
+                } else {
+                    throw new ServiceException("Exception", "two-factor authentication (2fa) failure", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                }
+            }
+
             OpenfireConnection connection = OpenfireConnection.createConnection(username, password);
 
             if (connection == null)
@@ -128,7 +196,6 @@ public class ChatService {
             throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
         }
     }
-
 
     //-------------------------------------------------------
     //

@@ -22,6 +22,7 @@ import java.util.*;
 import java.net.*;
 import java.util.concurrent.*;
 import java.lang.reflect.*;
+import java.security.Security;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.core.Response;
@@ -36,7 +37,9 @@ import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
 import org.jivesoftware.openfire.http.HttpBindManager;
 import org.jivesoftware.openfire.auth.AuthFactory;
+import org.jivesoftware.openfire.net.SASLAuthentication;
 
+import org.jivesoftware.openfire.plugin.rest.sasl.*;
 import org.jivesoftware.openfire.plugin.rest.service.JerseyWrapper;
 import org.jivesoftware.openfire.plugin.rest.controller.UserServiceController;
 import org.jivesoftware.openfire.plugin.rest.entity.UserEntities;
@@ -74,6 +77,8 @@ import org.jivesoftware.smack.OpenfireConnection;
 import org.ifsoft.meet.*;
 import org.xmpp.packet.*;
 import org.dom4j.Element;
+
+
 
 /**
  * The Class RESTServicePlugin.
@@ -243,11 +248,13 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         try
         {
+            Security.addProvider( new OfChatSaslProvider() );
+            SASLAuthentication.addSupportedMechanism( OfChatSaslServer.MECHANISM_NAME );
             //loadSolo();
         }
         catch ( Exception ex )
         {
-            Log.error( "An exception occurred while attempting to load solo", ex );
+            Log.error( "An exception occurred", ex );
         }
 
         Log.info("Initialize Bookmark Interceptor");
@@ -311,6 +318,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
                 return true;
             }
         });
+
     }
 
     /* (non-Javadoc)
@@ -336,6 +344,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         SessionEventDispatcher.removeListener(this);
 
         try {
+            SASLAuthentication.removeSupportedMechanism( OfChatSaslServer.MECHANISM_NAME );
+            Security.removeProvider( OfChatSaslProvider.NAME );
+
             //unloadSolo();
         } catch (Exception e) {}
     }

@@ -1766,12 +1766,12 @@
                 }
             }
         }, 
-        "/restapi/v1/chat/{username}/login":{
+        "/restapi/v1/chat/{username}/enroll":{
             "post":{
                 "tags": [
                     "Chat"
                 ],
-                "summary": "Login a chat session",
+                "summary": "Add a TOTP user enrollment",
                 "description": "",              
                 "consumes":[
                 ],
@@ -1804,8 +1804,81 @@
                         }
                     }
                 }
+            },
+            "delete":{
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Delete a TOTP user enrollment",
+                "description": "",             
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"username",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
             }
-        },        
+        },
+        "/restapi/v1/chat/{username}/login":{
+            "post":{
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Login a chat session",
+                "description": "",               
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"username",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"totp",
+                        "in":"query",
+                        "required":false
+                    },
+                    {
+                        "name":"body",
+                        "in":"body",
+                        "required":true,
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            }
+        },               
         "/restapi/v1/chatrooms":{
             "get":{
                 "tags": [

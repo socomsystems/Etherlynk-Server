@@ -44,7 +44,7 @@
                         <goal>wget</goal>
                     </goals>
                     <configuration>
-                        <url>https://download.jitsi.org/jitsi-meet/src/jitsi-meet-1.0.2569.tar.bz2</url>
+                        <url>https://download.jitsi.org/jitsi-meet/src/jitsi-meet-1.0.2579.tar.bz2</url>
                         <unpack>true</unpack>
                         <outputDirectory>classes</outputDirectory>
                     </configuration>
@@ -353,12 +353,19 @@
             <version>9.2.14.v20151106</version>
         </dependency>
         
-
+        <!-- https://mvnrepository.com/artifact/com.j256.two-factor-auth/two-factor-auth -->
+        <dependency>
+            <groupId>com.j256.two-factor-auth</groupId>
+            <artifactId>two-factor-auth</artifactId>
+            <version>1.0</version>
+        </dependency>
+        
+        
         <dependency>
            <groupId>org.json</groupId>
            <artifactId>json</artifactId>
            <version>20160810</version>
-        </dependency>
+        </dependency>       
 
         
     </dependencies>
