@@ -709,13 +709,86 @@
                 }
             }
         },     
+        "/restapi/v1/chat/certificate":{
+            "get":{
+                "tags": [
+                    "Chat"
+                ],    
+                "summary": "Download a user client certificate",
+                "description": "This request requires basic digest authentication for required user",             
+                "consumes":[
+                ],
+                "produces":[
+                    "application/x-pkcs12"
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"object"
+                        }
+                    }
+                }
+            }
+        },   
+        "/restapi/v1/chat/enroll":{
+            "get":{
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Get QR-Code for TOTP user enrollment",
+                "description": "This request requires basic digest authentication for required user",               
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            },
+            "delete":{
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Delete a TOTP user enrollment",
+                "description": "This request requires basic digest authentication for required user",        
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
+            }
+        },        
         "/restapi/v1/chat/rooms":{
             "get":{
-        "tags": [
-            "Chat"
-        ],    
-        "summary": "Retrieve a list of groupchat/muc rooms",
-        "description": "",      
+                "tags": [
+                    "Chat"
+                ],    
+                "summary": "Retrieve a list of groupchat/muc rooms",
+                "description": "",      
                 "consumes":[
                 ],
                 "produces":[
@@ -1766,73 +1839,6 @@
                 }
             }
         }, 
-        "/restapi/v1/chat/{username}/enroll":{
-            "post":{
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "Add a TOTP user enrollment",
-                "description": "",              
-                "consumes":[
-                ],
-                "produces":[
-                    "text/plain"
-                ],
-                "parameters":[
-                    {
-                        "type":"string",
-                        "name":"username",
-                        "in":"path",
-                        "required":true
-                    },
-                    {
-                        "name":"body",
-                        "in":"body",
-                        "required":true,
-                        "schema":{
-                            "type":"string"
-                        }
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"OK",
-                        "headers":{
-                        },
-                        "schema":{
-                            "type":"string"
-                        }
-                    }
-                }
-            },
-            "delete":{
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "Delete a TOTP user enrollment",
-                "description": "",             
-                "consumes":[
-                ],
-                "produces":[
-                    "text/plain"
-                ],
-                "parameters":[
-                    {
-                        "type":"string",
-                        "name":"username",
-                        "in":"path",
-                        "required":true
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"OK",
-                        "headers":{
-                        }
-                    }
-                }
-            }
-        },
         "/restapi/v1/chat/{username}/login":{
             "post":{
                 "tags": [

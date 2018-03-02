@@ -403,6 +403,27 @@
                 }
             }
         },
+        "/restapi/v1/chat/certificate":{
+            "post":{
+                "consumes":[
+                ],
+                "produces":[
+                    "application/x-pkcs12"
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"object"
+                        }
+                    }
+                }
+            }
+        },
         "/restapi/v1/chat/rooms":{
             "get":{
                 "consumes":[
@@ -1326,7 +1347,7 @@
             }
         },
         "/restapi/v1/chat/{username}/enroll":{
-            "get":{
+            "post":{
                 "consumes":[
                 ],
                 "produces":[

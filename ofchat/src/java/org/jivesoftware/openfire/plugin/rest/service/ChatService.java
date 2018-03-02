@@ -3,6 +3,9 @@ package org.jivesoftware.openfire.plugin.rest.service;
 import java.io.*;
 import java.util.*;
 import java.text.*;
+import java.net.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.annotation.PostConstruct;
@@ -36,7 +39,7 @@ import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 
 import org.jivesoftware.openfire.plugin.rest.*;
-
+import org.jivesoftware.openfire.plugin.rest.BasicAuth;
 import org.jivesoftware.openfire.plugin.rest.entity.RosterEntities;
 import org.jivesoftware.openfire.plugin.rest.entity.RosterItemEntity;
 import org.jivesoftware.openfire.plugin.rest.entity.UserEntities;
@@ -63,6 +66,7 @@ import org.jivesoftware.openfire.archive.*;
 
 import org.jivesoftware.smack.OpenfireConnection;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
+import de.mxro.process.*;
 
 
 @Path("restapi/v1/chat")
@@ -88,50 +92,130 @@ public class ChatService {
     //
     //-------------------------------------------------------
 
-    @POST
-    @Path("/{username}/enroll")
+    @GET
+    @Path("/certificate")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getTotpQrCode(@PathParam("username") String username, String password) throws ServiceException
+    public Response getCertificate() throws ServiceException
     {
-        Log.debug("addTotp " + username + "\n" + password);
+        String c2sTrustStoreLocation = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "security" + File.separator;
+        String base64String = httpRequest.getHeader("authorization");
+        String certsLocation = JiveGlobals.getHomeDirectory() + File.separator + "certificates";
+        String openSslPath = JiveGlobals.getProperty("ofchat.openssl.path", null);
 
-        try {
-            User user = userService.getUser(username);
-            String base32Secret = user.getProperties().get("ofchat.totp.secret");
+        Log.debug("getCertificate " + base64String);
 
-            if (base32Secret == null)
+        if (base64String != null)
+        {
+            String[] usernameAndPassword = BasicAuth.decode(base64String);
+
+            if (usernameAndPassword != null && usernameAndPassword.length == 2)
             {
-                base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-                user.getProperties().put("ofchat.totp.secret", base32Secret);
-            }
-            return TimeBasedOneTimePasswordUtil.qrImageUrl(username + "@" + server.getServerInfo().getXMPPDomain(), base32Secret);
+                try {
+                    // /usr/bin/openssl
+                    String aliasHome = checkCertificatesFolder(usernameAndPassword[0]);
+                    String pfxFile = aliasHome + File.separator + usernameAndPassword[0] + ".pfx";
 
-        } catch (Exception e) {
-            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                    if (!(new File(pfxFile)).exists())
+                    {
+                        if (openSslPath == null)
+                        {
+                            throw new ServiceException("Exception", "OpenSSL not configured", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                        }
+
+                        String jid = usernameAndPassword[0] + "@" + server.getServerInfo().getXMPPDomain();
+
+                        if (aliasHome != null)
+                        {
+                            String command1 = openSslPath + " req -new -newkey rsa:4096 -days 365 -nodes -x509 -keyout " + usernameAndPassword[0] + ".key -out " + usernameAndPassword[0] + ".crt -config " + usernameAndPassword[0] + ".cnf -extensions v3_extensions -subj \"/CN=" + jid + "\"";
+                            String out1 = Spawn.runCommand(command1, new File(aliasHome));
+                            Log.info(command1 + "\n" + out1);
+
+                            String command2 = openSslPath + " pkcs12 -export -inkey " + usernameAndPassword[0] + ".key -in " + usernameAndPassword[0] + ".crt -out " + usernameAndPassword[0] + ".pfx -passout pass:" + usernameAndPassword[1] + " -passin pass:" + usernameAndPassword[1];
+                            String out2 = Spawn.runCommand(command2, new File(aliasHome));
+                            Log.info(command2 + "\n" + out2);
+                        }
+                    }
+
+                    if (!(new File(pfxFile)).exists())
+                    {
+                        throw new ServiceException("Exception", "certificate creation failed", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                    }
+
+                    return Response.ok(new FileInputStream(pfxFile)).type("application/x-pkcs12").build();
+
+                } catch (Exception e) {
+                    throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                }
+            }
         }
+
+        throw new ServiceException("Exception", "Access denied", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+    }
+
+    @GET
+    @Path("/enroll")
+    public String getTotpQrCode() throws ServiceException
+    {
+        String base64String = httpRequest.getHeader("authorization");
+        Log.debug("addTotp " + base64String);
+
+        if (base64String != null)
+        {
+            String[] usernameAndPassword = BasicAuth.decode(base64String);
+
+            if (usernameAndPassword != null && usernameAndPassword.length == 2)
+            {
+                try {
+                    User user = userService.getUser(usernameAndPassword[0]);
+                    String base32Secret = user.getProperties().get("ofchat.totp.secret");
+
+                    if (base32Secret == null)
+                    {
+                        base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+                        user.getProperties().put("ofchat.totp.secret", base32Secret);
+                    }
+                    return TimeBasedOneTimePasswordUtil.qrImageUrl(usernameAndPassword[0] + "@" + server.getServerInfo().getXMPPDomain(), base32Secret);
+
+                } catch (Exception e) {
+                    throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                }
+            }
+        }
+        throw new ServiceException("Exception", "Access denied", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
     }
 
 
     @DELETE
-    @Path("/{username}/enroll")
+    @Path("/enroll")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteTotpQr(@PathParam("username") String username) throws ServiceException
+    public Response deleteTotpQr() throws ServiceException
     {
-        Log.debug("deleteTotpQr " + username);
+        String base64String = httpRequest.getHeader("authorization");
+        Log.debug("deleteTotpQr " + base64String);
 
-        try {
-            User user = userService.getUser(username);
-            String base32Secret = user.getProperties().get("ofchat.totp.secret");
+        if (base64String != null)
+        {
+            String[] usernameAndPassword = BasicAuth.decode(base64String);
 
-            if (base32Secret != null)
+            if (usernameAndPassword != null && usernameAndPassword.length == 2)
             {
-                user.getProperties().remove("ofchat.totp.secret");
-            }
-            return Response.status(Response.Status.OK).build();
+                try {
+                    User user = userService.getUser(usernameAndPassword[0]);
+                    String base32Secret = user.getProperties().get("ofchat.totp.secret");
 
-        } catch (Exception e) {
-            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                    if (base32Secret != null)
+                    {
+                        user.getProperties().remove("ofchat.totp.secret");
+                    }
+                    return Response.status(Response.Status.OK).build();
+
+                } catch (Exception e) {
+                    throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                }
+            }
         }
+
+        throw new ServiceException("Exception", "Access denied", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
     }
 
 
@@ -140,7 +224,7 @@ public class ChatService {
     @Produces(MediaType.TEXT_PLAIN)
     public String login(@PathParam("username") String username, @DefaultValue("") @QueryParam("totp") String totp, String password) throws ServiceException
     {
-        Log.debug("login " + username + " " + totp + "\n" + password);
+        Log.debug("login " + username + " " + totp);
 
         try {
             if (totp != null && !"".equals(totp))
@@ -849,10 +933,6 @@ public class ChatService {
     //
     //-------------------------------------------------------
 
-    private String getEndUser()
-    {
-        return null;
-    }
 
     private JID makeJid(String participant1)
     {
@@ -907,5 +987,34 @@ public class ChatService {
 
         Log.debug("objectToJson\n" + json + "\nObject= " + object);
         return json;
+    }
+
+    private String checkCertificatesFolder(String alias)
+    {
+        String jid = alias + "@" + server.getServerInfo().getXMPPDomain();
+        String certificatesHome = JiveGlobals.getHomeDirectory() + File.separator + "certificates";
+        String aliasHome = certificatesHome + File.separator + alias;
+
+        try
+        {
+            File certificatesFolderPath = new File(certificatesHome);
+            if (!certificatesFolderPath.exists()) certificatesFolderPath.mkdirs();
+
+            File aliasFolderPath = new File(aliasHome);
+            if (!aliasFolderPath.exists()) aliasFolderPath.mkdirs();
+
+            List<String> lines = Arrays.asList("[req]", "x509_extensions = v3_extensions", "req_extensions = v3_extensions", "distinguished_name = distinguished_name", "[v3_extensions]", "extendedKeyUsage = clientAuth", "keyUsage = digitalSignature,keyEncipherment", "basicConstraints = CA:FALSE", "subjectAltName = @subject_alternative_name", "[subject_alternative_name]", "otherName.0 = 1.3.6.1.5.5.7.8.5;UTF8:" + jid, "[distinguished_name]", "commonName = " + jid);
+            java.nio.file.Path file = java.nio.file.Paths.get(aliasHome + File.separator + alias + ".cnf");
+
+
+            Files.write(file, lines, Charset.forName("UTF-8"));
+
+            return aliasHome;
+        }
+        catch (Exception e)
+        {
+            Log.error("checkCertificatesFolder", e);
+        }
+        return null;
     }
 }

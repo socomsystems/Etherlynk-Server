@@ -21,8 +21,8 @@
     <name>Etherlynk API</name>
     <description>RESTful API with Server Sent Events (SSE)</description>
     <author>Ignite Realtime, Etherlynk Project</author>
-    <version>0.9.3 Release 3</version>
-    <date>02/06/2018</date>
+    <version>0.9.3 Release 4</version>
+    <date>03/02/2018</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>    
     <adminconsole>
@@ -39,6 +39,7 @@
                 <item id="user-summary" >
                     <sidebar id="sidebar-users-options" >
                         <item id="user-properties-plugin" name="Edit User Properties" url="user-properties.jsp" description="View, change and edit user properties"/>
+                        <item id="email-certificate" name="Email Certificate" url="email-certificate.jsp" description="Email Client Certificate to User"/>                        
                     </sidebar>
                 </item>
             </sidebar>

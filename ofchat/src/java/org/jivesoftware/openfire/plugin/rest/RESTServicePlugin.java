@@ -892,4 +892,42 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
             }
         }
     }
+
+    public boolean refreshClientCerts()
+    {
+        String c2sTrustStoreLocation = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "security" + File.separator;
+        String certificatesHome = JiveGlobals.getHomeDirectory() + File.separator + "certificates";
+
+        try {
+            File[] files = new File(certificatesHome).listFiles();
+
+            for (File file : files)
+            {
+                if (file.isDirectory())
+                {
+                    String alias = file.getName();
+                    String aliasHome = certificatesHome + File.separator + alias;
+
+                    Log.info("Refreshing client certificate " + alias);
+
+                    String command3 = "-delete -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias;
+                    sun.security.tools.keytool.Main.main(command3.split(" "));
+
+                    String command4 = "-delete -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias;
+                    sun.security.tools.keytool.Main.main(command4.split(" "));
+
+                    String command5 = "-importcert -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
+                    sun.security.tools.keytool.Main.main(command5.split(" "));
+
+                    String command6 = "-importcert -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
+                    sun.security.tools.keytool.Main.main(command6.split(" "));
+                }
+            }
+            return true;
+
+        } catch (Exception e) {
+            Log.error("refreshClientCerts", e);
+            return false;
+        }
+    }
 }

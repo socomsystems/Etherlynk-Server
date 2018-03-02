@@ -19,6 +19,7 @@
 <%
     // Get parameters
     boolean save = request.getParameter("save") != null;
+    boolean certificates = request.getParameter("certificates") != null;
     boolean success = request.getParameter("success") != null;
     String secret = ParamUtils.getParameter(request, "secret");
     boolean enabled = ParamUtils.getBooleanParameter(request, "enabled");
@@ -34,6 +35,16 @@
 
     // Handle a save
     Map errors = new HashMap();
+
+    if (certificates) 
+    {
+        if (plugin.refreshClientCerts())
+        {
+            response.sendRedirect("rest-api.jsp?success=true");
+            return;        
+        }
+    }
+        
     if (save) {
         if("custom".equals(httpAuth)) {
             loadingStatus = plugin.loadAuthenticationFilter(customAuthFilterClassName);
@@ -123,8 +134,10 @@
     %>
     <form action="rest-api.jsp?save" method="post">
 
-        <fieldset>
-            <legend>REST API</legend>
+        <div class="jive-contentBoxHeader">
+            REST API Settings
+        </div>
+        <div class="jive-contentBox">
             <div>
                 <p>
                     The REST API can be secured with a shared secret key defined below
@@ -184,11 +197,24 @@
                         API Documentation</a>
                 </p>
             </div>
-        </fieldset>
-
-        <br> <br> <input type="submit" value="Save Settings">
+            <br> <br> <input type="submit" value="Save Settings">            
+        </div>
     </form>
 
+    <form action="rest-api.jsp?certificates" method="post">
 
+        <div class="jive-contentBoxHeader">
+            Client Certificates
+        </div>
+        <div class="jive-contentBox">
+            <p>
+                The REST API can generate client certificates for secured mutual authentication (MTLS) with openfire.
+                The certicates are created and saved in folders and downloaded on request from there.
+                This task imports them into the truststore and client.trustore in batch.
+                The server or http-bind service should be restarted afterwards.                
+            </p>        
+            <br> <br> <input type="submit" value="Refresh">           
+        </div>
+    </form>        
 </body>
 </html>

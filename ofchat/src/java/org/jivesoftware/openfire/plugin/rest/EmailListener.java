@@ -325,9 +325,8 @@ public class EmailListener {
                 String roomJid = roomName + "@conference." + XMPPServer.getInstance().getServerInfo().getXMPPDomain();
                 bookmark = new Bookmark(Bookmark.Type.group_chat, subject, roomJid);
 
-                String id = "" + bookmark.getBookmarkID() + System.currentTimeMillis();
                 String rootUrlSecure = JiveGlobals.getProperty("ofmeet.root.url.secure", "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443"));
-                String url = rootUrlSecure + "/ofmeet/?b=" + id;
+                String url = rootUrlSecure + "/ofmeet/" + roomName;
 
                 bookmark.setProperty("url", url);
                 bookmark.setProperty("autojoin", "true");
@@ -512,13 +511,8 @@ public class EmailListener {
 
                 if (bookmark == null)
                 {
-                    String roomJid = "ofmeet-" + System.currentTimeMillis() + "@conference." + XMPPServer.getInstance().getServerInfo().getXMPPDomain();
                     bookmark = new Bookmark(Bookmark.Type.url, pdfTitle, pdfUrl);
                 }
-
-                String id = "" + bookmark.getBookmarkID() + System.currentTimeMillis();
-                String rootUrlSecure = JiveGlobals.getProperty("ofmeet.root.url.secure", "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443"));
-                String url = rootUrlSecure + "/ofmeet/?b=" + id;
 
                 bookmark.setProperty("url", pdfUrl);
                 bookmark.setGlobalBookmark(false);
@@ -958,8 +952,8 @@ public class EmailListener {
     {
         Log.info("sendWorkgroupEmail " + workgroupNodeName + " " + email + " " + room + "\n" + template);
 
-        String videourl = "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443") + "/ofmeet/?r=" + room;
-        String audiourl = videourl + "&novideo=true";
+        String videourl = "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443") + "/ofmeet/" + room;
+        String audiourl = videourl + "#config.startWithVideoMuted=true";
         String title = "RE:" + getFastpathPrefix() + workgroupNodeName;
 
         HashMap variables = new HashMap<String, String>();
@@ -1171,8 +1165,7 @@ public class EmailListener {
             String description = meeting.getString("description");
             String title = meeting.getString("title");
             String room = meeting.getString("room");
-            //String videourl = "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443") + "/ofmeet/?r=" + room;
-            String audiourl = videourl + "&novideo=true";
+            String audiourl = videourl + "#config.startWithVideoMuted=true";
             String template = JiveGlobals.getProperty("ofmeet.email.template", "Dear [name],\n\nYou have an online meeting from [start] to [end]\n\n[description]\n\nTo join, please click\n[videourl]\nFor audio only with no webcan, please click\n[audiourl]\n\nAdministrator - [domain]");
 
             HashMap variables = new HashMap<String, String>();
