@@ -893,41 +893,53 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         }
     }
 
-    public boolean refreshClientCerts()
+    public void refreshClientCerts()
     {
-        String c2sTrustStoreLocation = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "security" + File.separator;
-        String certificatesHome = JiveGlobals.getHomeDirectory() + File.separator + "certificates";
-
-        try {
-            File[] files = new File(certificatesHome).listFiles();
-
-            for (File file : files)
+        executor.submit(new Callable<Boolean>()
+        {
+            public Boolean call() throws Exception
             {
-                if (file.isDirectory())
-                {
-                    String alias = file.getName();
-                    String aliasHome = certificatesHome + File.separator + alias;
+                Log.info("Refreshing client certificates");
 
-                    Log.info("Refreshing client certificate " + alias);
+                String c2sTrustStoreLocation = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "security" + File.separator;
+                String certificatesHome = JiveGlobals.getHomeDirectory() + File.separator + "certificates";
 
-                    String command3 = "-delete -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias;
-                    sun.security.tools.keytool.Main.main(command3.split(" "));
+                try {
+                    File[] files = new File(certificatesHome).listFiles();
 
-                    String command4 = "-delete -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias;
-                    sun.security.tools.keytool.Main.main(command4.split(" "));
+                    for (File file : files)
+                    {
+                        if (file.isDirectory())
+                        {
+                            String alias = file.getName();
+                            String aliasHome = certificatesHome + File.separator + alias;
 
-                    String command5 = "-importcert -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
-                    sun.security.tools.keytool.Main.main(command5.split(" "));
+                            Log.info("Client certificate " + alias);
 
-                    String command6 = "-importcert -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
-                    sun.security.tools.keytool.Main.main(command6.split(" "));
+                            String command3 = "-delete -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias;
+                            System.err.println(command3);
+                            sun.security.tools.keytool.Main.main(command3.split(" "));
+
+                            String command4 = "-delete -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias;
+                            System.err.println(command4);
+                            sun.security.tools.keytool.Main.main(command4.split(" "));
+
+                            String command5 = "-importcert -keystore " + c2sTrustStoreLocation + "truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
+                            System.err.println(command5);
+                            sun.security.tools.keytool.Main.main(command5.split(" "));
+
+                            String command6 = "-importcert -keystore " + c2sTrustStoreLocation + "client.truststore -storepass changeit -alias " + alias + " -file " + aliasHome + File.separator + alias + ".crt -noprompt -trustcacerts";
+                            System.err.println(command6);
+                            sun.security.tools.keytool.Main.main(command6.split(" "));
+                        }
+                    }
+                    return true;
+
+                } catch (Exception e) {
+                    Log.error("refreshClientCerts", e);
+                    return false;
                 }
             }
-            return true;
-
-        } catch (Exception e) {
-            Log.error("refreshClientCerts", e);
-            return false;
-        }
+        });
     }
 }

@@ -19,6 +19,7 @@
 <%
     // Get parameters
     boolean save = request.getParameter("save") != null;
+    String msg = request.getParameter("msg");    
     boolean certificates = request.getParameter("certificates") != null;
     boolean success = request.getParameter("success") != null;
     String secret = ParamUtils.getParameter(request, "secret");
@@ -38,11 +39,9 @@
 
     if (certificates) 
     {
-        if (plugin.refreshClientCerts())
-        {
-            response.sendRedirect("rest-api.jsp?success=true");
-            return;        
-        }
+        plugin.refreshClientCerts();        
+        response.sendRedirect("rest-api.jsp?success=true&msg=Certificate Refresh Started (check log files)");
+        return;        
     }
         
     if (save) {
@@ -71,7 +70,7 @@
                 admin.logEvent("reloaded plugin "+ pluginName, null);
                 response.sendRedirect("/plugin-admin.jsp?reloadsuccess=true");
             }
-            response.sendRedirect("rest-api.jsp?success=true");
+            response.sendRedirect("rest-api.jsp?success=true&msg=REST API properties edited successfully");
             return;
         }
     }
@@ -103,8 +102,7 @@
                 <tr>
                     <td class="jive-icon"><img src="images/success-16x16.gif"
                         width="16" height="16" border="0"></td>
-                    <td class="jive-icon-label">REST API properties edited
-                        successfully.</td>
+                    <td class="jive-icon-label"><%= msg %></td>
                 </tr>
             </tbody>
         </table>
@@ -209,8 +207,8 @@
         <div class="jive-contentBox">
             <p>
                 The REST API can generate client certificates for secured mutual authentication (MTLS) with openfire.
-                The certicates are created and saved in folders and downloaded on request from there.
-                This task imports them into the truststore and client.trustore in batch.
+                The certicates are created and saved in folders and downloaded on request from there by the REST API.
+                This task is runs in the background by sysadmin to import them into the truststore and client.trustore.
                 The server or http-bind service should be restarted afterwards.                
             </p>        
             <br> <br> <input type="submit" value="Refresh">           
