@@ -320,6 +320,10 @@ public class OfMeetPlugin implements Plugin, SessionEventListener, ClusterEventL
      */
     public void populateJitsiSystemPropertiesWithJivePropertyValues()
     {
+        // SINGLE UDP PORT
+        System.setProperty( "org.jitsi.videobridge.SINGLE_PORT_HARVESTER_PORT", JiveGlobals.getProperty( "org.jitsi.videobridge.single_port_harvester_port", "10000" ) );
+
+
         // MAX/MIN_PORT_DEFAULT_VALUE: Instead of 5000-6000 (jitsi's default) use something that does not clash with default XMPP port numbers.
         System.setProperty( PluginImpl.MIN_PORT_NUMBER_PROPERTY_NAME, JiveGlobals.getProperty( PluginImpl.MIN_PORT_NUMBER_PROPERTY_NAME, "50000" ) );
         System.setProperty( PluginImpl.MAX_PORT_NUMBER_PROPERTY_NAME, JiveGlobals.getProperty( PluginImpl.MAX_PORT_NUMBER_PROPERTY_NAME, "60000" ) );

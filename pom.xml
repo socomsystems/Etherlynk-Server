@@ -34,11 +34,11 @@
 
     <modules>
         <module>ofchat</module>      
-        <!--module>ofmeet</module>       
+        <module>ofmeet</module>       
         <module>ofswitch</module>     
         <module>web</module>
         <module>config</module>                              
-        <module>offocus</module-->        
+        <module>offocus</module>        
     </modules>
 
     <licenses>

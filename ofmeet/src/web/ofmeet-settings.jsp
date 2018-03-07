@@ -47,6 +47,16 @@
             errors.put( "csrf", "CSRF Failure!" );
         }
 
+        final String singlePort = request.getParameter( "singlePort" );
+        try {
+            final int port = Integer.parseInt( singlePort );
+            if ( port < 1 && port > 65535 ) {
+                errors.put( "singlePort", "Port number is out of the valid range (1 >= port => 65535)." );
+            }
+        } catch (NumberFormatException ex ) {
+            errors.put( "singlePort", "Cannot parse value as integer value." );
+        }
+        
         final String minPort = request.getParameter( "minport" );
         try {
             final int port = Integer.parseInt( minPort );
@@ -177,9 +187,10 @@
         final boolean adaptivesimulcast = ParamUtils.getBooleanParameter( request, "adaptivesimulcast" );
 
         if ( errors.isEmpty() )
-        {
+        {      
             JiveGlobals.setProperty( PluginImpl.MIN_PORT_NUMBER_PROPERTY_NAME, minPort );
             JiveGlobals.setProperty( PluginImpl.MAX_PORT_NUMBER_PROPERTY_NAME, maxPort );
+            JiveGlobals.setProperty( "org.jitsi.videobridge.single_port_harvester_port", singlePort );              
             JiveGlobals.setProperty( SRTPCryptoContext.CHECK_REPLAY_PNAME, Boolean.toString( checkreplay ) );
             JiveGlobals.setProperty( "ofmeet.security.enabled", Boolean.toString( securityenabled ) );
             JiveGlobals.setProperty( "voicebridge.default.proxy.sipauthuser", authusername );
@@ -343,9 +354,13 @@
 
         <table cellpadding="3" cellspacing="0" border="0" width="100%">
             <tr>
+                <td align="left" width="200"><fmt:message key="config.page.configuration.single.port"/>:</td>
+                <td><input name="singlePort" type="text" maxlength="5" size="5" value="${admin:getIntProperty( "org.jitsi.videobridge.single_port_harvester_port", 10000)}"/></td>
+            </tr>
+            <tr>
                 <td align="left" width="200"><fmt:message key="config.page.configuration.min.port"/>:</td>
                 <td><input name="minport" type="text" maxlength="5" size="5" value="${admin:getIntProperty( MIN_PORT_NUMBER_PROPERTY_NAME, 5000)}"/></td>
-            </tr>
+            </tr>            
             <tr>
                 <td align="left" width="200"><fmt:message key="config.page.configuration.max.port"/>:</td>
                 <td><input name="maxport" type="text" maxlength="5" size="5" value="${admin:getIntProperty( MAX_PORT_NUMBER_PROPERTY_NAME, 6000)}"/></td>
