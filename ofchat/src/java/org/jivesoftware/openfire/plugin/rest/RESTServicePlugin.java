@@ -198,12 +198,14 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes", "/chat");
 
+/*
         ServletHolder fcgiServlet = context3.addServlet(FastCGIProxyServlet.class, "*.php");
         fcgiServlet.setInitParameter(FastCGIProxyServlet.SCRIPT_ROOT_INIT_PARAM, pluginDirectory.getPath() + "/classes");
         fcgiServlet.setInitParameter("proxyTo", "http://localhost:9123");
         fcgiServlet.setInitParameter("prefix", "/");
         fcgiServlet.setInitParameter("dirAllowed", "false");
         fcgiServlet.setInitParameter(FastCGIProxyServlet.SCRIPT_PATTERN_INIT_PARAM, "(.+?\\.php)");
+*/
 
         context3.setClassLoader(this.getClass().getClassLoader());
         final List<ContainerInitializer> initializers3 = new ArrayList<>();
@@ -239,6 +241,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         EmailListener.getInstance().start();
 
         Log.info("Initialize preffered property default values");
+
+        JiveGlobals.setProperty("route.all-resources", "true");     // send chat messages to all resources
 
         JiveGlobals.setProperty("ofmeet.buttons.implemented", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
         JiveGlobals.setProperty("ofmeet.buttons.enabled", "microphone, camera, desktop, invite, fullscreen, fodeviceselection, hangup, profile, dialout, addtocall, contacts, info, chat, recording, sharedvideo, settings, raisehand, videoquality, filmstrip");
