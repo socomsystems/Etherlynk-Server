@@ -18,8 +18,7 @@
 --%>
 
 <%@ page import="org.jivesoftware.util.*,
-                 java.util.*,
-                 org.freeswitch.esl.client.transport.message.EslMessage,                  
+                 java.util.*,              
                  java.net.URLDecoder"                       
     errorPage="error.jsp"
 %>
