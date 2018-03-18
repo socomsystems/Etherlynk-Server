@@ -111,6 +111,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     private ServletContextHandler context2;
     private ServletContextHandler context3;
     private ServletContextHandler context4;
+    private ServletContextHandler context5;
 
     private WebAppContext solo;
     public File pluginDirectory;
@@ -194,9 +195,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         HttpBindManager.getInstance().addJettyHandler(context2);
 
 
-        Log.info("Initialize Chat WebService ");
+        Log.info("Initialize Swagger WebService ");
 
-        context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes", "/chat");
+        context3 = new WebAppContext(null, pluginDirectory.getPath() + "/classes/swagger", "/swagger");
 
 /*
         ServletHolder fcgiServlet = context3.addServlet(FastCGIProxyServlet.class, "*.php");
@@ -235,6 +236,26 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         context4.setWelcomeFiles(new String[]{"index.jsp"});
         context4.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
         HttpBindManager.getInstance().addJettyHandler(context4);
+
+        Log.info("Initialize Dashboard WebService ");
+
+        context5 = new WebAppContext(null, pluginDirectory.getPath() + "/classes/dashboard", "/dashboard");
+        context5.setClassLoader(this.getClass().getClassLoader());
+
+        if ( JiveGlobals.getBooleanProperty("ofmeet.security.enabled", true ) )
+        {
+            Log.info("Initialize Dashboard WebService security");
+            SecurityHandler securityHandler4 = basicAuth("ofchat");
+            if (securityHandler4 != null) context5.setSecurityHandler(securityHandler4);
+        }
+
+        final List<ContainerInitializer> initializers5 = new ArrayList<>();
+        initializers5.add(new ContainerInitializer(new JettyJasperInitializer(), null));
+        context5.setAttribute("org.eclipse.jetty.containerInitializers", initializers5);
+        context5.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+        context5.setWelcomeFiles(new String[]{"index.jsp"});
+        context5.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
+        HttpBindManager.getInstance().addJettyHandler(context5);
 
         Log.info("Initialize Email Listener");
 
@@ -342,6 +363,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         HttpBindManager.getInstance().removeJettyHandler(context2);
         HttpBindManager.getInstance().removeJettyHandler(context3);
         HttpBindManager.getInstance().removeJettyHandler(context4);
+        HttpBindManager.getInstance().removeJettyHandler(context5);
 
         executor.shutdown();
         EmailListener.getInstance().stop();
@@ -600,6 +622,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         // Do nothing
     }
 
+    // add/remove SSE user endpoints
+
     public void addServlet(ServletHolder holder, String path)
     {
        context2.addServlet(holder, path);
@@ -748,19 +772,26 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         return response;
     }
 
-    public Object sendFWCommand(String command)
+    public List<String> sendFWCommand(String command)
     {
-        Object response = null;
+        List<String> lines = null;
 
         if (ofswitch == null) ofswitch = (Plugin) XMPPServer.getInstance().getPluginManager().getPlugin("ofswitch");
 
         try {
             Method method = ofswitch.getClass().getMethod("sendFWCommand", new Class[] {String.class});
-            response = method.invoke(ofswitch, new Object[] {command});
+            Object response = method.invoke(ofswitch, new Object[] {command});
+
+            if (response != null)
+            {
+                Method getBodyLines = response.getClass().getMethod("getBodyLines", new Class[] {});
+                lines = (List) getBodyLines.invoke(response, new Object[] {});
+            }
+
         } catch (Exception e) {
             Log.error("reflect error " + e);
         }
-        return response;
+        return lines;
     }
 
     // -------------------------------------------------------

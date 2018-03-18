@@ -1,23 +1,22 @@
-/**
- *	Widget template.
- *
- *	Loading flow:
- *		1. Register in a section for displaying
- *		2. Widget is pulled down
- *		3. addWidget called on screenManager
- *		4. screenManager calls widget.init
- *			5. widget.setData is called by widget.init
- *			6. widget.initialized is toggled
- *			7. widget.ready is called by widget.init
- *				8. widget.render is called by widget.init
- *					9. widget.fetch is called by widget.render
- *					10. widget.postRender is called by widget.render
- *			11. widget.subscribe is called by widget.init
- */
+/*
+	Loading Flow
+	------------
+	1. Add widget to a section for displaying
+	2. Widget is registered
+	3. addWidget in dashboard-core is called from the widget
+	4. Dashboard calls widget.init
+	5. widget.setData is called by widget.init
+	6. widget.ready is called by widget.init
+	7. widget.render is called by widget.init
+	8. widget.fetch is called by widget.render
+	9. widget.postRender is called by widget.render
+	10. widget.subscribe is called by widget.init
+*/
 
 window.widgetRoot = {
 	hideLink: false,
 	hideRefresh: false,
+	refreshOnStart: false,
 
 	initialized: false,
 
@@ -62,6 +61,13 @@ window.widgetRoot = {
 		Dashboard.Utils.emit('widget|render|' + this.name);
 
 		this.subscribe();
+
+		// Tag the widget with appropriate service
+		if(data.service) {
+			$('#widget-shell-' + this.shell.id).data('service', data.service);
+		} else {
+			$('#widget-shell-' + this.shell.id).data('service', '_common');
+		}
 	},
 
 	render: function() {
@@ -77,12 +83,20 @@ window.widgetRoot = {
 		});
 
 		this.postRender();
-		$(document).trigger("WidgetInternalEvent", ["widget|rendered|" + this.name]);
+		$(document).trigger('WidgetInternalEvent', ['widget|rendered|' + this.name]);
 	},
 
-	refresh: function() {
-
+	_$: function(id) {
+		if (id !== undefined) {
+			return $('#widget-' + this.shell.id).find(id);
+		} else {
+			return $('#widget-' + this.shell.id);
+		}
 	},
 
 	postRender: function() { },
+
+	refresh: _.debounce(function() {
+		this.fetch();
+	}, 100),
 };
