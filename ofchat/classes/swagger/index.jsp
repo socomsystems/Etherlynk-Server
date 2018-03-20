@@ -42,7 +42,7 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        url = "/chat/swagger/chatapi.json.jsp";
+        url = "/swagger/chatapi.json.jsp";
       }
 
       hljs.configure({

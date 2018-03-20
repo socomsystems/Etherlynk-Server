@@ -44,6 +44,7 @@ import org.eclipse.jetty.websocket.api.StatusCode;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
 public class SipConnection
@@ -58,7 +59,7 @@ public class SipConnection
 
 	public SipConnection(URI uri, String subprotocol, int connectTimeout)
 	{
-		Log.info("SipConnection " + uri + " " + subprotocol);
+		Log.debug("SipConnection " + uri + " " + subprotocol);
 
 		this.subprotocol = subprotocol;
 
@@ -68,7 +69,7 @@ public class SipConnection
 		{
 			sec.setValidateCerts(false);
 
-			Log.info("SipConnection - SSL");
+			Log.debug("SipConnection - SSL");
 			getSSLContext();
 			isSecure = true;
 		}
@@ -88,7 +89,7 @@ public class SipConnection
 
             client.connect(sipSocket, uri, request);
 
-            Log.info("Connecting to : " + uri);
+            Log.debug("Connecting to : " + uri);
         }
         catch (Exception e)
         {
@@ -129,13 +130,13 @@ public class SipConnection
 
 	public void disconnect()
 	{
-		Log.info("SipConnection - disconnect");
+		Log.debug("SipConnection - disconnect");
 		if (sipSocket != null) sipSocket.disconnect();
 	}
 
 	public void onClose(int code, String reason)
 	{
-		Log.info("SipConnection - onClose " + reason + " " + code);
+		Log.debug("SipConnection - onClose " + reason + " " + code);
 		connected = false;
 
 		if (this.socket != null) this.socket.disconnect();
@@ -170,7 +171,7 @@ public class SipConnection
 		SSLContext sc = null;
 
 		try {
-			Log.info("SipConnection SSL truster");
+			Log.debug("SipConnection SSL truster");
 
 			TrustManager[] trustAllCerts = new TrustManager[]
 			{
@@ -218,16 +219,21 @@ public class SipConnection
 			this.sipConnection = sipConnection;
 		}
 
+		@OnWebSocketError public void onError(Throwable t)
+		{
+			Log.error("Error: "  + t.getMessage(), t);
+		}
+
 		@OnWebSocketClose public void onClose(int statusCode, String reason)
 		{
-			Log.info("SIPSocket onClose " + statusCode + " " + reason);
+			Log.debug("SIPSocket onClose " + statusCode + " " + reason);
 			this.session = null;
 			if (sipConnection != null) sipConnection.onClose(statusCode, reason);
 		}
 
 		@OnWebSocketConnect public void onConnect(Session session)
 		{
-			Log.info("SIPSocket onConnect: " + session);
+			Log.debug("SIPSocket onConnect: " + session);
 			this.session = session;
 
 			if (lastMessage != null) deliver(lastMessage);

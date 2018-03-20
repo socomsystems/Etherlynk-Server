@@ -25,6 +25,7 @@ window.Tower = {
 
         // console section
         Dashboard.preregisterWidgets({'iframe_overview': widgetIframe});
+        Dashboard.preregisterWidgets({'iframe_verto': widgetIframe});
         Dashboard.preregisterWidgets({'iframe_users': widgetIframe});
         Dashboard.preregisterWidgets({'iframe_registrations': widgetIframe});
         Dashboard.preregisterWidgets({'iframe_calls': widgetIframe});
@@ -47,12 +48,13 @@ window.Tower = {
             // the array of widgets that belong to the section,
             // these were preregistered in init() because they are unique
             var widgets = [
-                { widgetId: 'iframe_overview', data: {url: "fs/overview.jsp", width: "100%", height: "480px", title: "Overview"} },
-                { widgetId: 'iframe_users', data: {url: "fs/users.jsp", width: "100%", height: "480px", title: "Users"} },
-                { widgetId: 'iframe_registrations', data: {url: "fs/registrations.jsp", width: "100%", height: "480px", title: "Registrations"} },
-                { widgetId: 'iframe_calls', data: {url: "fs/calls.jsp", width: "100%", height: "480px", title: "Active Calls"} },
-                { widgetId: 'iframe_conferences', data: {url: "fs/conferences.jsp", width: "100%", height: "480px", title: "Active Conferences"} },
-                { widgetId: 'iframe_gateways', data: {url: "fs/gateways.jsp", width: "100%", height: "480px", title: "Gateways"} },
+                { widgetId: 'iframe_overview', data: {url: "fs/overview.jsp", width: "100%", height: "512px", title: "Overview"} },
+                { widgetId: 'iframe_verto', data: {url: "verto/", width: "100%", height: "512px", title: "Verto Communicator"} },
+                { widgetId: 'iframe_users', data: {url: "fs/users.jsp", width: "100%", height: "512px", title: "Users"} },
+                { widgetId: 'iframe_registrations', data: {url: "fs/registrations.jsp", width: "100%", height: "512px", title: "Registrations"} },
+                { widgetId: 'iframe_calls', data: {url: "fs/calls.jsp", width: "100%", height: "512px", title: "Active Calls"} },
+                { widgetId: 'iframe_conferences', data: {url: "fs/conferences.jsp", width: "100%", height: "512px", title: "Active Conferences"} },
+                { widgetId: 'iframe_gateways', data: {url: "fs/gateways.jsp", width: "100%", height: "512px", title: "Gateways"} },
             ];
 
             // opens the section and pass in the widgets that it needs
@@ -63,10 +65,10 @@ window.Tower = {
             // the array of widgets that belong to the section,
             // these were preregistered in init() because they are unique
             var widgets = [
-                { widgetId: 'iframe_agents', data: {url: "fs/agents.jsp", width: "100%", height: "480px", title: "Agents"}  },
-                { widgetId: 'iframe_queues', data: {url: "fs/queues.jsp", width: "100%", height: "480px", title: "Queues"}  },
-                { widgetId: 'iframe_tiers', data: {url: "fs/tiers.jsp", width: "100%", height: "480px", title: "Agent/Queue Mapping"}  },
-                { widgetId: 'iframe_agent_calls', data: {url: "fs/agent-calls.jsp", width: "100%", height: "480px", title: "Agent Calls"}  }
+                { widgetId: 'iframe_agents', data: {url: "fs/agents.jsp", width: "100%", height: "512px", title: "Agents"}  },
+                { widgetId: 'iframe_queues', data: {url: "fs/queues.jsp", width: "100%", height: "512px", title: "Queues"}  },
+                { widgetId: 'iframe_tiers', data: {url: "fs/tiers.jsp", width: "100%", height: "512px", title: "Agent/Queue Mapping"}  },
+                { widgetId: 'iframe_agent_calls', data: {url: "fs/agent-calls.jsp", width: "100%", height: "512px", title: "Agent Calls"}  }
             ];
 
             // opens the section and pass in the widgets that it needs

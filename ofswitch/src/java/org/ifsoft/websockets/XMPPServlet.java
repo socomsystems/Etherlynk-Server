@@ -38,6 +38,7 @@ public final class XMPPServlet extends WebSocketServlet
 
 	@Override public void configure(WebSocketServletFactory factory)
 	{
+		factory.getPolicy().setIdleTimeout(60 * 60 * 1000);
 		factory.getPolicy().setMaxTextMessageSize(64000000);
 		factory.setCreator(new WSocketCreator());
 	}
@@ -46,11 +47,11 @@ public final class XMPPServlet extends WebSocketServlet
 	{
 		@Override public Object createWebSocket(ServletUpgradeRequest req, ServletUpgradeResponse resp)
 		{
-			Log.info("WSocketCreator ");
+			Log.debug("WSocketCreator ");
 
 			for (String subprotocol : req.getSubProtocols())
 			{
-				Log.info("WSocketCreator found protocol " + subprotocol);
+				Log.debug("WSocketCreator found protocol " + subprotocol);
 
 				if ("sip".equals(subprotocol) || "verto".equals(subprotocol))
 				{
@@ -64,7 +65,7 @@ public final class XMPPServlet extends WebSocketServlet
 		private SIPWebSocket getSIPSocket(String subprotocol, ServletUpgradeRequest req, ServletUpgradeResponse resp)
 		{
 			try {
-				Log.info("WSocketCreator accepted protocol " + subprotocol);
+				Log.debug("WSocketCreator accepted protocol " + subprotocol);
 
 				HttpServletRequest request = req.getHttpServletRequest();
 				String url = URLDecoder.decode( ParamUtils.getParameter(request, "url"), "UTF-8");
@@ -96,7 +97,7 @@ public final class XMPPServlet extends WebSocketServlet
 			this.sipConnection = sipConnection;
 
 			sipConnection.setSocket(this);
-			Log.info("setSipConnection");
+			Log.debug("setSipConnection");
 		}
 
 		public boolean isOpen() {
@@ -107,7 +108,7 @@ public final class XMPPServlet extends WebSocketServlet
 		{
 			this.wsSession = wsSession;
 			//sipConnection.setSecure(wsSession.isSecure());
-			Log.info("onConnect");
+			Log.debug("onConnect");
 		}
 
 		@OnWebSocketClose public void onClose(int statusCode, String reason)
@@ -119,7 +120,7 @@ public final class XMPPServlet extends WebSocketServlet
 				Log.error( "An error occurred while attempting to remove the socket", e );
 			}
 
-			Log.info(" : onClose : " + statusCode + " " + reason);
+			Log.debug(" : onClose : " + statusCode + " " + reason);
 		}
 
 		@OnWebSocketError public void onError(Throwable error)
@@ -162,7 +163,7 @@ public final class XMPPServlet extends WebSocketServlet
 
 		public void disconnect()
         {
-            Log.info("disconnect : SIPWebSocket disconnect");
+            Log.debug("disconnect : SIPWebSocket disconnect");
 
             try {
             	if (wsSession != null && wsSession.isOpen())

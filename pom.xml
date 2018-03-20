@@ -33,9 +33,9 @@
     </properties>
 
     <modules>
-        <module>ofchat</module>      
-        <module>ofmeet</module>       
-        <module>ofswitch</module>     
+        <module>ofchat</module>           
+        <module>ofswitch</module>   
+        <module>ofmeet</module>          
         <module>web</module>
         <module>config</module>                              
         <module>offocus</module>        
