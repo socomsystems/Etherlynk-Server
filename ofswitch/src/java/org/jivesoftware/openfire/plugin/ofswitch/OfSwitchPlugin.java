@@ -42,6 +42,8 @@ import org.jivesoftware.openfire.SessionManager;
 import org.jivesoftware.database.DbConnectionManager;
 import org.jivesoftware.openfire.muc.MUCEventListener;
 import org.jivesoftware.openfire.muc.MUCEventDispatcher;
+import org.jivesoftware.openfire.user.User;
+import org.jivesoftware.openfire.user.UserManager;
 
 import org.xmpp.component.ComponentManager;
 import org.xmpp.component.ComponentManagerFactory;
@@ -741,6 +743,17 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
         Log.debug("doHelper " + useExtensions + " " + startExten + " " + fsConfigPath);
 
         String response = null;
+
+        try {
+
+            for (User user : UserManager.getInstance().getUsers())
+            {
+
+            }
+
+        } catch (Exception e) {
+            response = e.toString()
+        }
 
         return response;
     }
