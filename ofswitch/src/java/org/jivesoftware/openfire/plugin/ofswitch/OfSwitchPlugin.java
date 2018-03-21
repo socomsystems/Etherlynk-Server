@@ -736,6 +736,15 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
         return null;
     }
 
+    public String doHelper(String useExtensions, String startExten, String fsConfigPath)
+    {
+        Log.debug("doHelper " + useExtensions + " " + startExten + " " + fsConfigPath);
+
+        String response = null;
+
+        return response;
+    }
+
     //-------------------------------------------------------
     //
     //      MUC room events
