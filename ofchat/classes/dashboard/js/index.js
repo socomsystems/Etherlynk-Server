@@ -38,6 +38,9 @@ window.Tower = {
         Dashboard.preregisterWidgets({'iframe_tiers': widgetIframe});
         Dashboard.preregisterWidgets({'iframe_agent_calls': widgetIframe});
 
+        // blast section
+        Dashboard.preregisterWidgets({'iframe_message_blast': widgetIframe});
+
         //open first section - console
         Tower.section['console']();
     },
@@ -62,17 +65,19 @@ window.Tower = {
         },
 
         'call_center': function() {
-            // the array of widgets that belong to the section,
-            // these were preregistered in init() because they are unique
             var widgets = [
                 { widgetId: 'iframe_agents', data: {url: "fs/agents.jsp", width: "100%", height: "512px", title: "Agents"}  },
                 { widgetId: 'iframe_queues', data: {url: "fs/queues.jsp", width: "100%", height: "512px", title: "Queues"}  },
                 { widgetId: 'iframe_tiers', data: {url: "fs/tiers.jsp", width: "100%", height: "512px", title: "Agent/Queue Mapping"}  },
                 { widgetId: 'iframe_agent_calls', data: {url: "fs/agent-calls.jsp", width: "100%", height: "512px", title: "Agent Calls"}  }
             ];
-
-            // opens the section and pass in the widgets that it needs
             Dashboard.showSection('call_center', widgets);
+        },
+        'blast': function() {
+            var widgets = [
+                { widgetId: 'iframe_message_blast', data: {url: "blast/index.jsp", width: "100%", height: "512px", title: "Message Blast"}  }
+            ];
+            Dashboard.showSection('blast', widgets);
         }
     }
 };

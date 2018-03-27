@@ -752,7 +752,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
             }
 
         } catch (Exception e) {
-            response = e.toString()
+            response = e.toString();
         }
 
         return response;

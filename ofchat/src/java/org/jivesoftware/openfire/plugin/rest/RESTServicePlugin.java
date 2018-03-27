@@ -254,7 +254,6 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         context5.setAttribute("org.eclipse.jetty.containerInitializers", initializers5);
         context5.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
         context5.setWelcomeFiles(new String[]{"index.jsp"});
-        context5.addFilter( JitsiMeetRedirectFilter.class, "/*", EnumSet.of( DispatcherType.REQUEST ) );
         HttpBindManager.getInstance().addJettyHandler(context5);
 
         Log.info("Initialize Email Listener");
