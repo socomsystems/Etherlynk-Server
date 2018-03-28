@@ -207,9 +207,6 @@ TL_MessageBlast.Newblast = (function () {
       participantpicker.innerHTML = '<div id="recipspin" class="ms-Spinner ms-Spinner--large"><div class="ms-Spinner-label">Loading... </div></div>'
       var spin = participantpicker.getElementsByClassName('ms-Spinner')[0]
       new fabric['Spinner'](spin)
-
-            // TL_MessageBlast.Request.makerequest("GET","chat/skype4b/"+this.value, TL_MessageBlast.Newblast.updaterecipients );
-
       TL_MessageBlast.Request.makerequest('GET', 'messageblast/recievers/' + this.value, TL_MessageBlast.Newblast.updaterecipientsmodel)
     })
   }

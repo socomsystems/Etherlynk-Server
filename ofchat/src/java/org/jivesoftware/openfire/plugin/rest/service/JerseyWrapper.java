@@ -18,6 +18,7 @@ import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import org.ifsoft.meet.MeetService;
+import org.traderlynk.blast.MessageBlastService;
 
 /**
  * The Class JerseyWrapper.
@@ -101,6 +102,7 @@ public class JerseyWrapper extends ServletContainer {
         prc.getClasses().add(ChatService.class);
         prc.getClasses().add(MeetService.class);
         prc.getClasses().add(AskService.class);
+        prc.getClasses().add(MessageBlastService.class);
 
         prc.getClasses().add(RESTExceptionMapper.class);
     }
