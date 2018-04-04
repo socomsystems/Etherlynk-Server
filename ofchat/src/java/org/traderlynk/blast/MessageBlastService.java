@@ -20,9 +20,6 @@ import java.util.*;
 import java.time.*;
 import java.util.concurrent.*;
 
-import org.traderlynk.blast.*;
-
-
 import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 import org.jivesoftware.openfire.plugin.rest.entity.*;
@@ -30,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.sf.json.*;
 import org.jivesoftware.openfire.plugin.rest.BasicAuth;
-import org.jivesoftware.openfire.plugin.ofmeet.TokenManager;
+
 import org.jivesoftware.util.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xc.*;
@@ -313,26 +310,12 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
 
         if (token != null)
         {
-            String base64String = TokenManager.getInstance().getBase64String(token);
+            String[] usernameAndPassword = BasicAuth.decode(token);
 
-            if (base64String != null)
+            if (usernameAndPassword != null && usernameAndPassword.length == 2)
             {
-                String[] usernameAndPassword = BasicAuth.decode(base64String);
 
-                if (usernameAndPassword != null && usernameAndPassword.length == 2)
-                {
-
-                    return usernameAndPassword[0];
-                }
-
-            } else {
-                String[] usernameAndPassword = BasicAuth.decode(token);
-
-                if (usernameAndPassword != null && usernameAndPassword.length == 2)
-                {
-
-                    return usernameAndPassword[0];
-                }
+                return usernameAndPassword[0];
             }
         }
 

@@ -1,32 +1,37 @@
 package org.traderlynk.blast;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.concurrent.*;
+import java.util.concurrent.*;
+import javax.ws.rs.core.Response;
+
 import org.jivesoftware.openfire.XMPPServer;
 import org.jivesoftware.openfire.SessionManager;
 import org.jivesoftware.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.jivesoftware.openfire.plugin.rawpropertyeditor.RawPropertyEditor;
 import org.jivesoftware.openfire.spi.XMPPServerInfoImpl;
-import org.dom4j.Element;
-import org.xmpp.packet.*;
-import org.traderlynk.blast.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import org.jivesoftware.openfire.plugin.rest.entity.*;
+import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
+import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 import org.jivesoftware.openfire.user.User;
-import net.sf.json.*;
-import java.util.concurrent.*;
-import org.xmpp.packet.*;
 import org.jivesoftware.openfire.user.UserManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.dom4j.Element;
+import org.xmpp.packet.*;
+
+import net.sf.json.*;
 
 public class MessageBlastController {
 
     private static final Logger Log = LoggerFactory.getLogger(MessageBlastController.class);
     public static final MessageBlastController INSTANCE = new MessageBlastController();
-    public ConcurrentHashMap<String, MessageBlastSentEntity> blastSents = new ConcurrentHashMap<String, MessageBlastSentEntity>();
+    public final Map<String, MessageBlastSentEntity> blastSents = new ConcurrentHashMap<String, MessageBlastSentEntity>();
+    public final Map<String, BlastChat> blastChats = new ConcurrentHashMap<String, BlastChat>();
 
     public static MessageBlastController getInstance() {
         return INSTANCE;
@@ -422,7 +427,7 @@ public class MessageBlastController {
         return new BlastGroups(groups);
     }
 
-    private List<String> getSenders(String username)
+    private List<String> getBlastSenders(String username)
     {
         List<String> senders = new ArrayList<String>();
         String domain = getDomain();
@@ -461,11 +466,11 @@ public class MessageBlastController {
         return JiveGlobals.getProperty("skype.domain", XMPPServer.getInstance().getServerInfo().getXMPPDomain());
     }
 
-    private BlastGroups fetchGroups(String username, String from) throws ServiceException
+    public BlastGroups fetchGroups(String username, String from) throws ServiceException
     {
         Log.debug("fetchGroups " + username + " " + from);
 
-        if (getSenders(username).contains(from) == false)
+        if (getBlastSenders(username).contains(from) == false)
         {
             throw new ServiceException("User " + username + " not permitted to access " + from, "Permission", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
         }
@@ -537,6 +542,95 @@ public class MessageBlastController {
             Log.error("fetchGroups", e);
             throw new ServiceException(e.toString(), "Exception", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
         }
+    }
+
+    public BlastGroups fetchConversations(String username, String from, String jobId, String filter, String type, String start, String count) throws ServiceException
+    {
+        Log.debug("fetchConversations " + username + " " + from + " " + jobId + " " + filter + " " + type + " " + start + " " + count);
+
+        ArrayList<BlastGroup> groups = new ArrayList<BlastGroup>();
+        ArrayList<BlastEntity> contactList = new ArrayList<BlastEntity>();
+
+        int counter = 0;
+        int startPoint = 1;
+        int endPoint = 100; // default
+
+        try {
+            startPoint = Integer.parseInt(start);
+            endPoint = startPoint + Integer.parseInt(count);
+
+        } catch (Exception e) {}
+
+
+        for (String key :  blastChats.keySet())
+        {
+            if (key.startsWith(username))
+            {
+                BlastChat blastChat = blastChats.get(key);
+
+                if (blastChat.from.contains(from) && blastChat.id != null && jobId.equals(blastChat.id) && blastChat.isFiltered(filter, type))
+                {
+                    counter++;
+
+                    if (counter < startPoint) continue;
+                    if (counter > endPoint) break;
+
+                    BlastEntity blastEntity = new BlastEntity(blastChat.to, blastChat.to);
+
+                    blastEntity.setSubject(blastChat.subject);
+                    blastEntity.setReplyTo(blastChat.replyTo);
+                    blastEntity.setMessageOut(blastChat.body);
+                    blastEntity.setMessageIn(blastChat.response);
+                    blastEntity.setMessageError(blastChat.error);
+                    blastEntity.setJobId(blastChat.id);
+
+                    blastEntity.setSent(blastChat.body != null);
+                    blastEntity.setRead(blastChat.conversationHref != null);
+                    blastEntity.setResponded(blastChat.response != null);
+                    blastEntity.setError(blastChat.error != null);
+                    blastEntity.setEndpoint(blastChat.endpoint);
+
+                    blastEntity.setFirstAttemptTimeStamp(blastChat.firstAttemptTimeStamp);
+                    blastEntity.setLastAttemptTimeStamp(blastChat.lastAttemptTimeStamp);
+                    blastEntity.setPresence(blastChat.presence);
+                    blastEntity.setRetriesLeft(blastChat.retriesLeft);
+
+                    contactList.add(blastEntity);
+                }
+            }
+        }
+        groups.add(new BlastGroup(contactList, "Conversations"));
+        return new BlastGroups(groups);
+    }
+
+    public String deleteSentBlasts(String username, String from, String jobId) throws ServiceException
+    {
+        String response = null;
+
+        Log.debug("deleteSentBlasts " + username + " " + from + " " + jobId);
+
+        RawPropertyEditor.self.deleteProperties(username, "belfry.blast.message." + jobId);
+
+        ArrayList<String> keys = new ArrayList<String>();
+
+        for (String key :  blastChats.keySet())
+        {
+            if (key.startsWith(username))
+            {
+                BlastChat blastChat = blastChats.get(key);
+
+                if (blastChat.from.contains(from) && blastChat.id != null && jobId.equals(blastChat.id))
+                {
+                    keys.add(key);
+                }
+            }
+        }
+
+        for (String key: keys)
+        {
+            blastChats.remove(key);
+        }
+        return response;
     }
 }
 

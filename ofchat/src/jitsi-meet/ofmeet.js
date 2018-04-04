@@ -66,6 +66,8 @@ var ofmeet = (function(of)
     {
         console.log("ofmeet.js __init");
 
+        of.subtitles = document.getElementById("subtitles");
+
         APP.conference.addConferenceListener(JitsiMeetJS.events.conference.CONFERENCE_JOINED, function()
         {
             console.log("ofmeet.js me joined");
@@ -75,6 +77,22 @@ var ofmeet = (function(of)
         {
             console.log("ofmeet.js me left");
             hangup();
+
+            if (of.recognition)
+            {
+                of.recognitionActive = false;
+                of.recognition.stop();
+            }
+        });
+
+        APP.conference.addConferenceListener(JitsiMeetJS.events.conference.MESSAGE_RECEIVED , function(id, text, ts)
+        {
+            //console.log("ofmeet.js message", id, text, ts);
+
+            if (OFMEET_CONFIG.enableCaptions)
+            {
+                of.subtitles.innerHTML = id.split("-")[0] + " : " + text;
+            }
         });
 
         APP.conference.addConferenceListener(JitsiMeetJS.events.conference.USER_LEFT, function(id)
@@ -122,6 +140,12 @@ var ofmeet = (function(of)
             of.dialstring = APP.conference.roomName;
             // Issue with SIP and JitsiMeet chat
             //connectSIP();
+
+            if (OFMEET_CONFIG.enableTranscription)
+            {
+                setupSpeechRecognition();
+                of.recognition.start();
+            }
         }
     }
 
@@ -398,6 +422,67 @@ var ofmeet = (function(of)
     function getUniqueID()
     {
             return Math.random().toString(36).substr(2, 9);
+    }
+
+    function setupSpeechRecognition()
+    {
+        console.log("setupSpeechRecognition", event);
+
+        of.recognition = new webkitSpeechRecognition();
+        of.recognition.lang = "en-GB";
+        of.recognition.continuous = true;
+        of.recognition.interimResults = false;
+
+        of.recognition.onresult = function(event)
+        {
+            console.log("Speech recog event", event)
+
+            if(event.results[event.resultIndex].isFinal==true)
+            {
+                var transcript = event.results[event.resultIndex][0].transcript;
+                console.log("Speech recog transcript", transcript);
+                sendSpeechRecognition(transcript);
+            }
+        }
+
+        of.recognition.onspeechend  = function(event)
+        {
+            console.log("Speech recog onspeechend", event);
+        }
+
+        of.recognition.onstart = function(event)
+        {
+            console.log("Speech to text started", event);
+            of.recognitionActive = true;
+        }
+
+        of.recognition.onend = function(event)
+        {
+            console.log("Speech to text ended", event);
+
+            if (of.recognitionActive)
+            {
+                //console.warn("Speech to text restarted");
+                of.recognition.start();
+            }
+        }
+
+        of.recognition.onerror = function(event)
+        {
+            console.error("Speech to text error", event);
+        }
+    }
+
+    function sendSpeechRecognition(result)
+    {
+        if (result != "" && APP.conference && APP.conference._room)
+        {
+            var message = "[" + result + "]";
+            console.log("Speech recog result", APP.conference._room, message,  OFMEET_CONFIG.username, OFMEET_CONFIG.nickName);
+
+            APP.conference._room.sendTextMessage(message, OFMEET_CONFIG.nickName);
+            of.currentTranslation = [];
+        }
     }
 
     window.addEventListener("beforeunload", function(e)

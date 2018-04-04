@@ -58,25 +58,30 @@ public class Servlet extends HttpServlet
         String name = request.getParameter("name");
         String username = request.getParameter("username");
 
-        if (name.endsWith(".zip"))
-        {
-            Log.info( "Processing PUT request... ({} submitting to {})", request.getRemoteAddr(), request.getRequestURI() );
-            response.setHeader( "Cache-Control", "max-age=31536000" );
+        Log.info( "Processing PUT request... ({} submitting to {})", request.getRemoteAddr(), request.getRequestURI() );
+        response.setHeader( "Cache-Control", "max-age=31536000" );
 
-            final Path path = Paths.get( ".", "upload-" + System.currentTimeMillis() + name);
-            final OutputStream outStream = new BufferedOutputStream(Files.newOutputStream(path, java.nio.file.StandardOpenOption.CREATE ));
-            final InputStream in = request.getInputStream();
+        if (name.endsWith(".webm"))
+        {
+            String dir = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + "ofmeet-cdn" + File.separator + "recordings";
+            Path path = Paths.get( dir, name);
 
             try {
-                final byte[] buffer = new byte[ 1024 * 4 ];
-                int bytesRead;
+                writeFile(path, request);
 
-                while ( ( bytesRead = in.read( buffer ) ) != -1 )
-                {
-                    outStream.write( buffer, 0, bytesRead );
-                }
+            } catch (Exception e) {
+               Log.error("upload webm servlet", e);
+               response.setStatus( HttpServletResponse.SC_BAD_REQUEST);
+            }
+        }
+        else
 
-                outStream.close();
+        if (name.endsWith(".zip"))
+        {
+            Path path = Paths.get( ".", "upload." + System.currentTimeMillis() + "." + name);
+
+            try {
+                writeFile(path, request);
 
                 String source = path.toString();
                 String folder = name = name.substring(0, name.indexOf(".zip"));
@@ -102,16 +107,33 @@ public class Servlet extends HttpServlet
                     new Bookmark(Bookmark.Type.url, folder, bookmarkValue, new ArrayList<String>(Arrays.asList(new String[] {username})), null);
                 }
 
-                response.setHeader( "Location", request.getRequestURL().toString() );
-                response.setStatus( HttpServletResponse.SC_CREATED );
-
             } catch (Exception e) {
-               Log.error("upload servlet", e);
+               Log.error("upload application zip servlet", e);
                response.setStatus( HttpServletResponse.SC_BAD_REQUEST);
             }
+
         } else {
-            Log.warn("Application upload. " + name + " is not a zip file from " + username);
+            Log.warn("Chat API upload. " + name + " is not a valid file from " + username);
             response.setStatus( HttpServletResponse.SC_BAD_REQUEST);
         }
+
+        response.setHeader( "Location", request.getRequestURL().toString() );
+        response.setStatus( HttpServletResponse.SC_CREATED );
+    }
+
+    private void writeFile(Path path, HttpServletRequest request) throws Exception
+    {
+        final OutputStream outStream = new BufferedOutputStream(Files.newOutputStream(path, java.nio.file.StandardOpenOption.CREATE ));
+        final InputStream in = request.getInputStream();
+
+        final byte[] buffer = new byte[ 1024 * 4 ];
+        int bytesRead;
+
+        while ( ( bytesRead = in.read( buffer ) ) != -1 )
+        {
+            outStream.write( buffer, 0, bytesRead );
+        }
+
+        outStream.close();
     }
 }

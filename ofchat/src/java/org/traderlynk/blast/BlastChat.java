@@ -15,6 +15,7 @@ public class BlastChat {
     public String response = null;
     public String conversationHref = null;
     public String error = null;
+    public String endpoint = null;
 
     public String firstAttemptTimeStamp;
     public String lastAttemptTimeStamp;

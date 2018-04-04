@@ -1,4 +1,4 @@
-package org.jivesoftware.openfire.plugin.rest.entity;
+package org.traderlynk.blast;
 
 import java.util.*;
 

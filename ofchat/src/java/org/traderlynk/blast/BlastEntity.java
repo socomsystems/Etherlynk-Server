@@ -1,5 +1,6 @@
 package org.traderlynk.blast;
 
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -17,7 +18,7 @@ public class BlastEntity {
     private String subject;
     private String replyTo;
     private String jobId;
-
+    private String endpoint;
 
     private boolean sent;
     private boolean read;
@@ -61,7 +62,6 @@ public class BlastEntity {
     public void setSipUri(String sipUri) {
         this.sipUri = sipUri;
     }
-
     /**
      * Gets the name.
      *
@@ -80,6 +80,25 @@ public class BlastEntity {
      */
     public void setName(String name) {
         this.name = name;
+    }
+    /**
+     * Gets the endpoint.
+     *
+     * @return the endpoint
+     */
+    @XmlElement
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    /**
+     * Sets the endpoint.
+     *
+     * @param endpoint
+     *            the new endpoint
+     */
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
     }
 
     /**

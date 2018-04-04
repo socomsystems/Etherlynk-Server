@@ -10,6 +10,9 @@
         
     String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
     
+    boolean enableTranscription = JiveGlobals.getBooleanProperty("ofmeet.enable.voicetotext.transcription", true);
+    boolean enableCaptions = JiveGlobals.getBooleanProperty( "ofmeet.enable.message.captions", true);
+    
     boolean isSwitchAvailable = JiveGlobals.getBooleanProperty("freeswitch.enabled", false);
     String sipDomain = JiveGlobals.getProperty("freeswitch.sip.hostname", ourIpAddress);
     
@@ -69,9 +72,11 @@
             userAvatar:<%= userAvatar == null ? null : "'" + userAvatar + "'" %>,            
             authorization: <%= authorization == null ? null : "'" + authorization + "'" %>,   
             
+            enableTranscription: <%= enableTranscription %>,  
+            enableCaptions: <%= enableCaptions %>, 
             isSwitchAvailable: <%= isSwitchAvailable %>,
             callcontrol:'<%= "callcontrol." + domain %>', 
-            sip:'<%= sipDomain %>',              
+            sip:'<%= sipDomain %>',            
             hostname:'<%= hostname %>',             
             domain:'<%= domain %>'
         };
@@ -210,6 +215,7 @@
   </head>
   <body>
     <div id="react"></div>
+    <div id="subtitles" style="position: absolute; bottom: 5%; left: 10%; z-index: 2; font-weight: 600; font-size: 24px; text-align: left; color: #FFF;   opacity: .80; text-shadow: 0px 0px 1px rgba(0,0,0,0.3),0px 1px 1px rgba(0,0,0,0.3),1px 0px 1px rgba(0,0,0,0.3),0px 0px 1px rgba(0,0,0,0.3)"></div>
     <div id="keyboard-shortcuts" class="keyboard-shortcuts" style="display:none;">
         <div class="content">
             <ul id="keyboard-shortcuts-list" class="shortcuts-list">
