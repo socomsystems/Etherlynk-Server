@@ -24,6 +24,12 @@ import java.util.concurrent.*;
 import java.lang.reflect.*;
 import java.security.Security;
 
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+
 import javax.servlet.DispatcherType;
 import javax.ws.rs.core.Response;
 
@@ -342,6 +348,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
                 return true;
             }
         });
+
+        Log.info("Create recordings folder");
+        checkRecordingsFolder();
 
     }
 
@@ -924,6 +933,42 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
             {
                 solo = null;
             }
+        }
+    }
+
+    private void checkRecordingsFolder()
+    {
+        String ofmeetHome = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + "ofmeet-cdn";
+
+        try
+        {
+            File ofmeetFolderPath = new File(ofmeetHome);
+
+            if(!ofmeetFolderPath.exists())
+            {
+                ofmeetFolderPath.mkdirs();
+
+            }
+
+            List<String> lines = Arrays.asList("Move on, nothing here....");
+            Path file = Paths.get(ofmeetHome + File.separator + "index.html");
+            Files.write(file, lines, Charset.forName("UTF-8"));
+
+            File recordingsHome = new File(ofmeetHome + File.separator + "recordings");
+
+            if(!recordingsHome.exists())
+            {
+                recordingsHome.mkdirs();
+
+            }
+
+            lines = Arrays.asList("Move on, nothing here....");
+            file = Paths.get(recordingsHome + File.separator + "index.html");
+            Files.write(file, lines, Charset.forName("UTF-8"));
+        }
+        catch (Exception e)
+        {
+            Log.error("checkDownloadFolder", e);
         }
     }
 
