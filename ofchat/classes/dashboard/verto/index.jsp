@@ -1,5 +1,5 @@
 <%@ page import="org.jivesoftware.util.*, org.jivesoftware.openfire.user.*, org.jivesoftware.openfire.*, org.dom4j.*, java.net.*,
-                 org.jivesoftware.openfire.vcard.VCardManager, java.util.*, java.net.URLEncoder, javax.xml.bind.DatatypeConverter"%>
+                 org.jivesoftware.openfire.sip.sipaccount.*, java.util.*, java.net.URLEncoder, javax.xml.bind.DatatypeConverter"%>
 <%
     String hostname = XMPPServer.getInstance().getServerInfo().getHostname();    
     String ourIpAddress = hostname;
@@ -12,6 +12,43 @@
     
     boolean isSwitchAvailable = JiveGlobals.getBooleanProperty("freeswitch.enabled", false);
     String sipDomain = JiveGlobals.getProperty("freeswitch.sip.hostname", ourIpAddress);
+    
+    String sipPassword = "";
+    String sipUsername = "";
+    String userName = "";
+    String userEmail = "";    
+    
+    String authorization = request.getHeader("authorization");
+    
+    if (authorization != null)
+    {
+        authorization = authorization.replaceFirst("[B|b]asic ", "");
+        byte[] decodedBytes = DatatypeConverter.parseBase64Binary(authorization);
+
+        if (decodedBytes != null && decodedBytes.length > 0) 
+        {
+            String[] userPass = new String(decodedBytes).split(":", 2);
+
+            try {
+                User user = XMPPServer.getInstance().getUserManager().getUser(userPass[0]);            
+                userName = user.getName();
+                userEmail = user.getEmail();   
+                
+                if (userEmail == null) userEmail = "user@domain.com";
+                
+                SipAccount sipAccount = SipAccountDAO.getAccountByUser(userPass[0]);
+
+                if (sipAccount != null)
+                {
+                    sipPassword = sipAccount.getPassword();
+                    sipUsername = sipAccount.getSipUsername();
+                }            
+
+            } catch (Exception e) {
+
+            }        
+        }
+    }    
      
 %>
 <!DOCTYPE html>
@@ -25,7 +62,7 @@
     <meta name="author" content="FreeSWITCH">
     <link rel="icon" href="favicon.ico">
 
-    <title ng-bind="'[' + title + '] ' + 'FreeSWITCH Verto&trade; Video Transcoding'"></title>
+    <title ng-bind="'[' + title + '] ' + 'Etherlynk Verto'"></title>
 
     <link rel="stylesheet" href="css/vendor.db6bd80e.css">
 
@@ -40,7 +77,7 @@
     <![endif]-->
 
     <script>
-      window.fsSipDomain = "<%= sipDomain %>";   
+      window.fsSip = {domain: "<%= sipDomain %>", username: "<%= sipUsername %>", password: "<%= sipPassword %>", name: "<%= userName %>", email: "<%= userEmail %>"};
       
       if (location.search) {
         var tmp = location.search;
@@ -75,14 +112,8 @@
     </div>
 
     <video class="hide" id="webcam" autoplay="autoplay" style="width:100%; height:100%; object-fit:inherit;"></video>
-
-
     <!--<script type="text/javascript" src="js/jquery/jquery.mobile.min.js"></script>-->
-
     <script src="scripts/vendor.54239bbc.js"></script>
-
     <script src="scripts/scripts.eb8d8230.js"></script>
-
-
   </body>
 </html>
