@@ -21,8 +21,8 @@
     <name>Etherlynk Switch</name>
     <description>Media Control Unit for media mixing and routing</description>
     <author>Ignite Realtime, Etherlynk Project</author>
-    <version>0.9.3 Release 5</version>
-    <date>03/18/2018</date>
+    <version>0.9.3 Release 6</version>
+    <date>04/24/2018</date>
     <minServerVersion>4.1.5</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>    
     <adminconsole>
@@ -33,7 +33,7 @@
                 <item id="freeswitch-users"         name="${config.freeswitch.users.name}"      description="${config.freeswitch.users.description}"                    url="freeswitch-users.jsp"/>
                 <item id="freeswitch-conferences"   name="${config.freeswitch.conferences.name}"    description="${config.freeswitch.conferences.description}"          url="freeswitch-conferences.jsp"/>
                 <item id="freeswitch-calls"         name="${config.freeswitch.calls.name}"      description="${config.freeswitch.calls.description}"                    url="freeswitch-calls.jsp"/>
-                <item id="freeswitch-registrations"     name="${config.freeswitch.registrations.name}"  description="${config.freeswitch.registrations.description}"    url="freeswitch-registrations.jsp"/>                
+                <item id="freeswitch-registrations" name="${config.freeswitch.registrations.name}"  description="${config.freeswitch.registrations.description}"    url="freeswitch-registrations.jsp"/>                
                 <item id="freeswitch-gateways"      name="${config.freeswitch.gateways.name}"   description="${config.freeswitch.gateways.description}"                 url="freeswitch-gateways.jsp"/>                
                 <item id="freeswitch-agents"        name="${config.freeswitch.agents.name}"     description="${config.freeswitch.agents.description}"                   url="freeswitch-agents.jsp"/>                
                 <item id="freeswitch-queues"        name="${config.freeswitch.queues.name}"     description="${config.freeswitch.queues.description}"                   url="freeswitch-queues.jsp"/>                

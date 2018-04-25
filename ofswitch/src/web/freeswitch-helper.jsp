@@ -37,13 +37,13 @@
     {
         String useExtensions = request.getParameter("useExtensions");
         String startExten = request.getParameter("startExten");
-        String fsConfigPath = request.getParameter("fsConfigPath");        
+        String fsConfigPath = request.getParameter("fsConfigPath");          
         
         JiveGlobals.setProperty("freeswitch.helper.use.extensions", (useExtensions != null && useExtensions.equals("on")) ? "true": "false");        
         JiveGlobals.setProperty("freeswitch.helper.start.extension", startExten);        
         JiveGlobals.setProperty("freeswitch.server.config.path", fsConfigPath);   
         
-        errorMessage = OfSwitchPlugin.self.doHelper(useExtensions, startExten, fsConfigPath);         
+        errorMessage = OfSwitchPlugin.self.doHelper(useExtensions != null && useExtensions.equals("on"), startExten, fsConfigPath);         
     }
 
 %>
@@ -53,11 +53,24 @@
    <meta name="pageID" content="freeswitch-helper"/>
 </head>
 <body>
-<% if (errorMessage != null) { %>
+<% if ("ok".equals(errorMessage)) {%>
+    <div class="jive-success">
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tbody>
+        <tr><td class="jive-icon"><img src="images/success-16x16.gif" width="16" height="16" border="0" alt=""></td>
+        <td class="jive-icon-label">
+        FreeSWITCH Updated
+        </td></tr>
+    </tbody>
+    </table>
+    </div><br>
+
+<% } else if (errorMessage != null) { %>
 <div class="error">
     <%= errorMessage%>
-</div>
-<% } %>
+</div>    
+
+<%  } %>
 <br/>
 
 <form action="freeswitch-helper.jsp" method="post">

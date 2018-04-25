@@ -32,9 +32,9 @@
         <openfire.version>4.2.0</openfire.version>
     </properties>
 
-    <modules>
-        <module>ofchat</module>           
+    <modules>         
         <module>ofswitch</module>   
+        <module>ofchat</module>          
         <module>ofmeet</module>          
         <module>web</module>
         <module>config</module>                              

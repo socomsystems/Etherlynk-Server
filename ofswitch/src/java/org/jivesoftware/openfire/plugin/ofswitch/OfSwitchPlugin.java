@@ -25,7 +25,8 @@ import java.util.*;
 import java.net.*;
 import java.lang.reflect.*;
 import java.util.concurrent.*;
-
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import javax.servlet.DispatcherType;
 
 import org.apache.tomcat.InstanceManager;
@@ -42,8 +43,10 @@ import org.jivesoftware.openfire.SessionManager;
 import org.jivesoftware.database.DbConnectionManager;
 import org.jivesoftware.openfire.muc.MUCEventListener;
 import org.jivesoftware.openfire.muc.MUCEventDispatcher;
-import org.jivesoftware.openfire.user.User;
-import org.jivesoftware.openfire.user.UserManager;
+import org.jivesoftware.openfire.user.*;
+import org.jivesoftware.openfire.vcard.*;
+import org.jivesoftware.openfire.group.*;
+import org.jivesoftware.openfire.sip.sipaccount.*;
 
 import org.xmpp.component.ComponentManager;
 import org.xmpp.component.ComponentManagerFactory;
@@ -738,24 +741,132 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
         return null;
     }
 
-    public String doHelper(String useExtensions, String startExten, String fsConfigPath)
+    public String doHelper(boolean useExtensions, String startExten, String fsConfigPath)
     {
         Log.debug("doHelper " + useExtensions + " " + startExten + " " + fsConfigPath);
 
-        String response = null;
+        String response = "ok";
 
         try {
+            String extension = startExten;
+            SipRegisterStatus status = SipRegisterStatus.valueOf("Unregistered");
+            String sipServer = JiveGlobals.getProperty("freeswitch.sip.hostname", getIpAddress());
+            String password = JiveGlobals.getProperty("freeswitch.sip.password", "Welcome123");
 
             for (User user : UserManager.getInstance().getUsers())
             {
+                String userId = user.getUsername();
+                String name = user.getName();
 
+                if (!useExtensions) extension = userId;
+
+                Map<String, String> userProperties = user.getProperties();
+
+                SipAccount sipAccount = SipAccountDAO.getAccountByUser(userId);
+
+                if (sipAccount == null)
+                {
+                    // create one
+
+                    if (useExtensions)
+                    {
+                        // find first unused extension
+                        while (SipAccountDAO.getAccountByExtn(extension) != null)
+                        {
+                            extension = getNextExten(extension);
+                        }
+                    }
+
+                    List<String> lines = Arrays.asList("<include>", "<user id=\"" + extension + "\">", "<params>", "<param name=\"password\" value=\"" + password + "\"/>", "<param name=\"vm-password\" value=\"" + password + "\"/>", "</params>", "<variables>", "<variable name=\"toll_allow\" value=\"domestic,international,local\"/>", "<variable name=\"accountcode\" value=\"" + extension + "\"/>", "<variable name=\"user_context\" value=\"default\"/>", "<variable name=\"effective_caller_id_name\" value=\"" + name + "\"/>", "<variable name=\"effective_caller_id_number\" value=\"" + extension + "\"/>", "<variable name=\"outbound_caller_id_name\" value=\"$${outbound_caller_name}\"/>", "<variable name=\"outbound_caller_id_number\" value=\"$${outbound_caller_id}\"/>", "<variable name=\"callgroup\" value=\"default\"/>", "</variables>", "</user>", "</include>");
+                    java.nio.file.Path file = java.nio.file.Paths.get(fsConfigPath + File.separator + "directory" + File.separator + "default" + File.separator + extension + ".xml");
+                    Files.write(file, lines, Charset.forName("UTF-8"));
+
+                    sipAccount = new SipAccount(userId);
+                    sipAccount.setSipUsername(extension);
+                    sipAccount.setAuthUsername(extension);
+                    sipAccount.setDisplayName(name);
+                    sipAccount.setPassword(password);
+                    sipAccount.setServer(sipServer);
+                    sipAccount.setEnabled(true);
+                    sipAccount.setStatus(status);
+                    sipAccount.setUseStun(false);
+                    sipAccount.setVoiceMailNumber(extension);
+                    sipAccount.setOutboundproxy(sipServer);
+                    sipAccount.setPromptCredentials(false);
+
+                    SipAccountDAO.insert(sipAccount);
+
+                    if (useExtensions)
+                    {
+                        extension = getNextExten(extension);
+                    }
+                }
             }
+
+            Collection<Group> groups = GroupManager.getInstance().getGroups();
+            List<String> groupLines = new ArrayList<String>();
+
+            for (Group group : groups)
+            {
+                groupLines.add("<group name=\"" + group.getName() + "\">");
+                groupLines.add("<users>");
+
+                for (JID memberJID : group.getMembers())
+                {
+                    setMember(memberJID.getNode(), useExtensions, groupLines);
+                }
+
+                for (JID memberJID : group.getAdmins())
+                {
+                    setMember(memberJID.getNode(), useExtensions, groupLines);
+                }
+                groupLines.add("</users>");
+                groupLines.add("</group>");
+            }
+
+            java.nio.file.Path file = java.nio.file.Paths.get(fsConfigPath + File.separator + "directory" + File.separator + "openfire-groups.xml");
+            Files.write(file, groupLines, Charset.forName("UTF-8"));
 
         } catch (Exception e) {
             response = e.toString();
         }
 
+        if ("ok".equals(response)) sendFWCommand("reloadxml");
+
         return response;
+    }
+
+    private String getNextExten(String extension)
+    {
+        int ext = Integer.parseInt(extension);
+        ext++;
+        return String.valueOf(ext);
+    }
+
+    private void setMember(String userId, boolean useExtensions, List<String> groupLines)
+    {
+        String member = userId;
+
+        if (useExtensions)
+        {
+            member = null;
+
+            try {
+                SipAccount myAccount = SipAccountDAO.getAccountByUser(userId);
+
+                if (myAccount != null)
+                {
+                    member = myAccount.getSipUsername();
+                }
+            } catch (Exception e) {
+
+            }
+        }
+
+        if (member != null)
+        {
+            groupLines.add("<user id=\"" + member + "\" type=\"pointer\"/>");
+        }
     }
 
     //-------------------------------------------------------
