@@ -60,13 +60,12 @@
 
     <meta name="description" content="Verto (VER-to) RTC is a FreeSWITCH endpoint that implements a subset of a JSON-RPC connection designed for use over secure websockets.">
     <meta name="author" content="FreeSWITCH">
-    <link rel="icon" href="favicon.ico">
+    <link rel="shortcut icon" href="icon.png" type="image/png" />
 
     <title ng-bind="'[' + title + '] ' + 'Etherlynk Verto'"></title>
-
-    <link rel="stylesheet" href="css/vendor.db6bd80e.css">
-
+    
     <!-- CSS -->
+    <link rel="stylesheet" href="css/vendor.db6bd80e.css">    
     <link rel="stylesheet" href="css/verto.e85092b6.css">
 
 
@@ -78,6 +77,9 @@
 
     <script>
       window.fsSip = {domain: "<%= sipDomain %>", username: "<%= sipUsername %>", password: "<%= sipPassword %>", name: "<%= userName %>", email: "<%= userEmail %>"};
+      
+      localStorage.setItem("ngStorage-email", '"<%= userEmail %>"');
+      localStorage.setItem("ngStorage-name", '"<%= userName %>"');     
       
       if (location.search) {
         var tmp = location.search;

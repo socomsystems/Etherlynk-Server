@@ -1,3 +1,4 @@
 {  
-      "autologin": "true"      
+      "autologin": true,
+      "autocall": "3500"
 }
