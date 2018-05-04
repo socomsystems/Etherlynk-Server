@@ -1,5 +1,9 @@
 package org.jivesoftware.openfire.plugin.rest.service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javax.annotation.PostConstruct;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,12 +22,21 @@ import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 import org.jivesoftware.openfire.plugin.rest.entity.AssistEntity;
 import org.jivesoftware.openfire.plugin.rest.entity.AskQueue;
 
+import org.jivesoftware.openfire.user.*;
+import org.jivesoftware.database.DbConnectionManager;
+
 import org.jivesoftware.smack.OpenfireConnection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.sf.json.*;
+import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 
 @Path("restapi/v1/ask")
 public class AskService {
+
+    private static final Logger Log = LoggerFactory.getLogger(AskService.class);
 
     @PostConstruct
     public void init()
@@ -151,5 +164,83 @@ public class AskService {
         } catch (Exception e) {
             throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
         }
+    }
+
+    @POST
+    @Path("/uport/register")
+    public String uportRegister(String json) throws ServiceException
+    {
+        Log.info("uportRegister\n" + json);
+
+        JSONObject response = new JSONObject();
+
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        UserManager userManager = UserManager.getInstance();
+
+        try {
+            JSONObject uportCreds = new JSONObject(json);
+
+            if (uportCreds.has("address") && uportCreds.has("name") && uportCreds.has("publicKey"))
+            {
+                con = DbConnectionManager.getConnection();
+                pstmt = con.prepareStatement("SELECT username FROM ofUserProp WHERE propValue=?");
+                pstmt.setString(1, uportCreds.getString("address"));
+
+                rs = pstmt.executeQuery();
+
+                if (!rs.next())
+                {
+                    String[] parts = uportCreds.getString("name").split(" ");
+                    String username = parts[0].toLowerCase().trim();
+
+                    if (parts.length > 1)
+                    {
+                        username = username + "." + parts[1].toLowerCase().trim();
+                    }
+                    boolean ok = false;
+                    String finalUsername = username;
+                    int count = 0;
+
+                    while (!ok)
+                    {
+                        try {
+                            userManager.getUser(finalUsername);
+                            finalUsername = username + "-" + String.valueOf(++count);
+
+                        } catch (UserNotFoundException e) {
+                            ok = true;
+                        }
+                    }
+
+                    String email = uportCreds.has("email") ? uportCreds.getString("email") : null;
+                    String password = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+
+                    User user = userManager.createUser(finalUsername, password, uportCreds.getString("name"),  email);
+
+                    user.getProperties().put("etherlynk.address", uportCreds.getString("address"));
+                    user.getProperties().put("etherlynk.public.key", uportCreds.getString("publicKey"));
+
+                    response.put("username", finalUsername);
+                    response.put("password", password);
+
+                } else {
+                    Log.error("user exists  " + uportCreds.getString("address"));
+                    throw new ServiceException("Exception", "user exists", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                }
+            } else {
+                Log.error("bad request\n" + uportCreds);
+                throw new ServiceException("Exception", "bad request", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+            }
+
+        } catch (Exception e) {
+            Log.error("uportRegister execption", e);
+            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        } finally {
+            DbConnectionManager.closeConnection(rs, pstmt, con);
+        }
+
+        return response.toString();
     }
 }

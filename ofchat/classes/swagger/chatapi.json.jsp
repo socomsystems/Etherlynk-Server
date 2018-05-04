@@ -260,6 +260,40 @@
                     }
                 }
             }
+        },   
+        "/restapi/v1/ask/uport/register":{
+            "post":{
+                "tags": [
+                    "Ask"
+                ],              
+                "summary": "uPort user registration for Ethereum",
+                "description": "Use this to create a new Openfire user using their Ethereum identity",              
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "in":"body",
+                        "required":true,
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            }
         },        
         "/restapi/v1/ask/{userId}":{
             "get":{

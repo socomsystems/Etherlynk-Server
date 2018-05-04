@@ -251,8 +251,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         if ( JiveGlobals.getBooleanProperty("ofmeet.security.enabled", true ) )
         {
             Log.info("Initialize Dashboard WebService security");
-            SecurityHandler securityHandler4 = basicAuth("ofchat");
-            if (securityHandler4 != null) context5.setSecurityHandler(securityHandler4);
+            SecurityHandler securityHandler5 = basicAuth("ofchat");
+            if (securityHandler5 != null) context5.setSecurityHandler(securityHandler5);
         }
 
         final List<ContainerInitializer> initializers5 = new ArrayList<>();
