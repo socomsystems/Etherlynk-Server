@@ -170,7 +170,7 @@ public class AskService {
     @Path("/uport/register")
     public String uportRegister(String json) throws ServiceException
     {
-        Log.info("uportRegister\n" + json);
+        Log.debug("uportRegister\n" + json);
 
         JSONObject response = new JSONObject();
 
@@ -184,6 +184,11 @@ public class AskService {
 
             if (uportCreds.has("address") && uportCreds.has("name") && uportCreds.has("publicKey"))
             {
+                String email = uportCreds.has("email") ? uportCreds.getString("email") : null;
+                String password = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+                String finalUsername = null;
+                User user = null;
+
                 con = DbConnectionManager.getConnection();
                 pstmt = con.prepareStatement("SELECT username FROM ofUserProp WHERE propValue=?");
                 pstmt.setString(1, uportCreds.getString("address"));
@@ -200,7 +205,7 @@ public class AskService {
                         username = username + "." + parts[1].toLowerCase().trim();
                     }
                     boolean ok = false;
-                    String finalUsername = username;
+                    finalUsername = username;
                     int count = 0;
 
                     while (!ok)
@@ -214,21 +219,28 @@ public class AskService {
                         }
                     }
 
-                    String email = uportCreds.has("email") ? uportCreds.getString("email") : null;
-                    String password = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-
-                    User user = userManager.createUser(finalUsername, password, uportCreds.getString("name"),  email);
+                    user = userManager.createUser(finalUsername, password, uportCreds.getString("name"),  email);
 
                     user.getProperties().put("etherlynk.address", uportCreds.getString("address"));
                     user.getProperties().put("etherlynk.public.key", uportCreds.getString("publicKey"));
 
-                    response.put("username", finalUsername);
-                    response.put("password", password);
-
                 } else {
-                    Log.error("user exists  " + uportCreds.getString("address"));
-                    throw new ServiceException("Exception", "user exists", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+                    finalUsername = rs.getString(1);
+
+                    user = userManager.getUser(finalUsername);
+                    user.setPassword(password);
+                    user.setName(uportCreds.getString("name"));
+
+                    if (email != null) user.setEmail(email);
                 }
+
+                if (uportCreds.has("avatar")) user.getProperties().put("etherlynk.avatar", uportCreds.getJSONObject("avatar").getString("uri"));
+                if (uportCreds.has("country")) user.getProperties().put("etherlynk.country", uportCreds.getString("country"));
+                if (uportCreds.has("phone")) user.getProperties().put("etherlynk.phone", uportCreds.getString("phone"));
+
+                response.put("username", finalUsername);
+                response.put("password", password);
+
             } else {
                 Log.error("bad request\n" + uportCreds);
                 throw new ServiceException("Exception", "bad request", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
