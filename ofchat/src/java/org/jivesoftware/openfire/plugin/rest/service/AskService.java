@@ -21,6 +21,7 @@ import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 import org.jivesoftware.openfire.plugin.rest.entity.AssistEntity;
 import org.jivesoftware.openfire.plugin.rest.entity.AskQueue;
+import org.jivesoftware.openfire.auth.AuthFactory;
 
 import org.jivesoftware.openfire.user.*;
 import org.jivesoftware.database.DbConnectionManager;
@@ -227,11 +228,15 @@ public class AskService {
                 } else {
                     finalUsername = rs.getString(1);
 
-                    user = userManager.getUser(finalUsername);
-                    user.setPassword(password);
-                    user.setName(uportCreds.getString("name"));
+                    if (uportCreds.has("password"))
+                    {
+                        user = userManager.getUser(finalUsername);
+                        AuthFactory.authenticate(finalUsername, uportCreds.getString("password"));
 
-                    if (email != null) user.setEmail(email);
+                        user.setPassword(password);
+                        user.setName(uportCreds.getString("name"));
+                        if (email != null) user.setEmail(email);
+                    }
                 }
 
                 if (uportCreds.has("avatar")) user.getProperties().put("etherlynk.avatar", uportCreds.getJSONObject("avatar").getString("uri"));
