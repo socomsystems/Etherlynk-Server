@@ -32,13 +32,13 @@
         <openfire.version>4.2.0</openfire.version>
     </properties>
 
-    <modules>         
-        <module>ofswitch</module>   
-        <module>ofchat</module>          
+    <modules> 
+        <module>ofchat</module>       
+        <!--module>ofswitch</module>          
         <module>ofmeet</module>          
         <module>web</module>
         <module>config</module>                              
-        <module>offocus</module>        
+        <module>offocus</module-->        
     </modules>
 
     <licenses>

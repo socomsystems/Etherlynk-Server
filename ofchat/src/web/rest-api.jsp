@@ -23,6 +23,7 @@
     boolean certificates = request.getParameter("certificates") != null;
     boolean success = request.getParameter("success") != null;
     String secret = ParamUtils.getParameter(request, "secret");
+    String permission = ParamUtils.getParameter(request, "permission");    
     boolean enabled = ParamUtils.getBooleanParameter(request, "enabled");
     String httpAuth = ParamUtils.getParameter(request, "authtype");
     String allowedIPs = ParamUtils.getParameter(request, "allowedIPs");
@@ -56,6 +57,7 @@
             
             boolean is2Reload = "custom".equals(httpAuth) || "custom".equals(plugin.getHttpAuth());
             plugin.setEnabled(enabled);
+            plugin.setPermission(permission);               
             plugin.setSecret(secret);
             plugin.setHttpAuth(httpAuth);
             plugin.setAllowedIPs(StringUtils.stringToCollection(allowedIPs));
@@ -76,6 +78,7 @@
     }
 
     secret = plugin.getSecret();
+    permission = plugin.getPermission();    
     enabled = plugin.isEnabled();
     httpAuth = plugin.getHttpAuth();
     allowedIPs = StringUtils.collectionToString(plugin.getAllowedIPs());
@@ -171,6 +174,11 @@
                         key:</label>
                     <input type="text" name="secret" value="<%=secret%>"
                         id="text_secret">
+                    <br>                    
+                    <label style="padding-left: 25px" for="text_permission">Permission
+                        key:</label>
+                    <input type="text" name="permission" value="<%=permission%>"
+                        id="text_permission">
                     <br>
                     <input type="radio" name="authtype" value="custom"
                         id="customFilterAuth" <%=("custom".equals(httpAuth) ? "checked" : "")%>>

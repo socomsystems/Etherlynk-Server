@@ -97,8 +97,11 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
     private static final String CUSTOM_AUTH_FILTER_PROPERTY_NAME = "plugin.ofchat.customAuthFilter";
 
-    /** The secret. */
+    /** The authentication secret. */
     private String secret;
+
+    /** The permission secret. */
+    private String permission;
 
     /** The allowed i ps. */
     private Collection<String> allowedIPs;
@@ -151,6 +154,14 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         if ("".equals(secret)) {
             secret = StringUtils.randomString(16);
             setSecret(secret);
+        }
+
+        permission = JiveGlobals.getProperty("plugin.restapi.permission", "");
+
+        // If no permission key has been assigned, assign a random one.
+        if ("".equals(permission)) {
+            permission = StringUtils.randomString(16);
+            setPermission(permission);
         }
 
         Log.info("Initialize REST");
@@ -503,6 +514,26 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     }
 
     /**
+     * Returns the permission key that only valid requests should know.
+     *
+     * @return the permission key.
+     */
+    public String getPermission() {
+        return permission;
+    }
+
+    /**
+     * Sets the permission key that grants permission to use the userservice.
+     *
+     * @param permission
+     *            the permission key.
+     */
+    public void setPermission(String permission) {
+        JiveGlobals.setProperty("plugin.restapi.permission", permission);
+        this.permission = permission;
+    }
+
+    /**
      * Returns the custom authentication filter class name used in place of the basic ones to grant permission to use the Rest services.
      *
      * @return custom authentication filter class name .
@@ -588,6 +619,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     public void propertySet(String property, Map<String, Object> params) {
         if (property.equals("plugin.restapi.secret")) {
             this.secret = (String) params.get("value");
+        } else if (property.equals("plugin.restapi.permission")) {
+            this.permission = (String) params.get("value");
         } else if (property.equals("plugin.restapi.enabled")) {
             this.enabled = Boolean.parseBoolean((String) params.get("value"));
         } else if (property.equals("plugin.restapi.allowedIPs")) {
@@ -605,6 +638,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     public void propertyDeleted(String property, Map<String, Object> params) {
         if (property.equals("plugin.restapi.secret")) {
             this.secret = "";
+        } else if (property.equals("plugin.restapi.permission")) {
+            this.permission = "";
         } else if (property.equals("plugin.restapi.enabled")) {
             this.enabled = false;
         } else if (property.equals("plugin.restapi.allowedIPs")) {

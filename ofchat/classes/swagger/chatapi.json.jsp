@@ -294,6 +294,44 @@
                     }
                 }
             }
+        }, 
+        "/restapi/v1/ask/uport/{appId}/{clientId}":{
+            "get":{
+                "tags": [
+                    "Ask"
+                ],              
+                "summary": "uPort request for app signer",
+                "description": "Use this to request for an application signer",              
+                "consumes":[
+                ],
+                "produces":[
+                    "text/plain"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"appId",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"clientId",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "type":"string"
+                        }
+                    }
+                }
+            }
         },        
         "/restapi/v1/ask/{userId}":{
             "get":{

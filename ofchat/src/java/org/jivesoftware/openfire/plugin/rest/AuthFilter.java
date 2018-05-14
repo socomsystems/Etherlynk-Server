@@ -74,12 +74,6 @@ public class AuthFilter implements ContainerRequestFilter {
             return containerRequest;
         }
 
-        // Assist does not require authentication
-
-        if (containerRequest.getPath().startsWith("restapi/v1/ask")) {
-            return containerRequest;
-        }
-
         // Get the authentification passed in HTTP headers parameters
         String auth = containerRequest.getHeaderValue("authorization");
 
@@ -87,12 +81,26 @@ public class AuthFilter implements ContainerRequestFilter {
             throw new WebApplicationException(Status.UNAUTHORIZED);
         }
 
+        // if master secret used, allow everything
+
         if (auth.equals(plugin.getSecret())) {
             return containerRequest;
         }
 
-        // HTTP Basic Auth or Shared Secret key
-        if ("basic".equals(plugin.getHttpAuth())) {
+        // if permission code is used, allow everything except admin
+        // TODO fix solo plugin that will be broken by this change
+
+        if (containerRequest.getPath().startsWith("restapi/v1/admin") == false)
+        {
+            if (auth.equals(plugin.getPermission())) {
+                return containerRequest;
+            }
+        }
+
+        // accept user based authentication if allowed
+
+        if ("basic".equals(plugin.getHttpAuth()))
+        {
             String[] usernameAndPassword = BasicAuth.decode(auth);
 
             // If username or password fail

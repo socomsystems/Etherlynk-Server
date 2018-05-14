@@ -31,6 +31,7 @@
                 <item url="rest-api.jsp" id="rest-api" name="${admin.sidebar.webclients.item.settings.name}" description="${admin.sidebar.webclients.item.settings.description}" />
                 <item url="swagger-ui-sandbox.jsp" id="swagger-ui" name="${admin.sidebar.webclients.item.swagger.name}" description="${admin.sidebar.webclients.item.swagger.description}" />                                                        
                 <item url="ofchat-email-listener.jsp" id="ofchat-email-listener" name="${config.page.email.listener.title}" description="${config.page.email.listener.description}"/> 
+                <item url="uport-summary.jsp" id="uport-summary" name="${config.page.uport.summary.title}" description="${config.page.uport.summary.description}"/> 
          </sidebar>            
         </tab>     
             

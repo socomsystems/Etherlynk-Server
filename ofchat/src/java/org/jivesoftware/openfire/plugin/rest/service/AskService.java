@@ -23,6 +23,7 @@ import org.jivesoftware.openfire.plugin.rest.entity.AssistEntity;
 import org.jivesoftware.openfire.plugin.rest.entity.AskQueue;
 import org.jivesoftware.openfire.auth.AuthFactory;
 
+import org.jivesoftware.util.*;
 import org.jivesoftware.openfire.user.*;
 import org.jivesoftware.database.DbConnectionManager;
 
@@ -167,6 +168,29 @@ public class AskService {
         }
     }
 
+    @GET
+    @Path("/uport/{appId}/{clientId}")
+    public String getSigner(@PathParam("appId") String appId, @PathParam("clientId") String clientId) throws ServiceException
+    {
+        Log.info("getSigner uport.clientid." + appId + "." + clientId);
+
+        try {
+            String signer = JiveGlobals.getProperty("uport.clientid." + appId + "." + clientId);
+
+            Log.info("gotSigner " + signer);
+
+            if (signer == null || signer.equals(""))
+            {
+                throw new ServiceException("Exception", "client Id not found", ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+            }
+
+            return signer;
+
+        } catch (Exception e) {
+            throw new ServiceException("Exception", e.getMessage(), ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        }
+    }
+
     @POST
     @Path("/uport/register")
     public String uportRegister(String json) throws ServiceException
@@ -186,7 +210,7 @@ public class AskService {
             if (uportCreds.has("address") && uportCreds.has("name") && uportCreds.has("publicKey"))
             {
                 String email = uportCreds.has("email") ? uportCreds.getString("email") : null;
-                String password = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+                String password = StringUtils.randomString(32);
                 String finalUsername = null;
                 User user = null;
 
@@ -223,6 +247,7 @@ public class AskService {
                     user = userManager.createUser(finalUsername, password, uportCreds.getString("name"),  email);
 
                     user.getProperties().put("etherlynk.address", uportCreds.getString("address"));
+                    user.getProperties().put("etherlynk.account", uportCreds.getString("account"));
                     user.getProperties().put("etherlynk.public.key", uportCreds.getString("publicKey"));
 
                 } else {
