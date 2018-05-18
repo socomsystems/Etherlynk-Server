@@ -35,7 +35,7 @@ public class BlastChat {
         this.conversationHref = null;
         this.firstAttemptTimeStamp = Instant.now().toString();
         this.lastAttemptTimeStamp = this.firstAttemptTimeStamp;
-        this.retriesLeft = JiveGlobals.getProperty("skype.max.retries", "20");
+        this.retriesLeft = JiveGlobals.getProperty("ofchat.max.retries", "20");
         this.presence = "offline";
     }
 

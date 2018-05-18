@@ -16,15 +16,21 @@ import org.jivesoftware.openfire.spi.XMPPServerInfoImpl;
 import org.jivesoftware.openfire.plugin.rest.entity.*;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
-import org.jivesoftware.openfire.user.User;
-import org.jivesoftware.openfire.user.UserManager;
+import org.jivesoftware.openfire.user.*;
+import org.jivesoftware.openfire.group.*;
+import org.jivesoftware.openfire.roster.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dom4j.Element;
 import org.xmpp.packet.*;
 
+import com.google.gson.Gson;
+import org.apache.http.HttpResponse;
+import nl.martijndwars.webpush.*;
+
 import net.sf.json.*;
+import org.ifsoft.meet.MeetController;
 
 public class MessageBlastController {
 
@@ -57,7 +63,7 @@ public class MessageBlastController {
             for (int i = 0; i < usersList.size(); i++) {
                 User user = usersList.get(i);
                 for (String key : user.getProperties().keySet()) {
-                    if (key.contains("belfry.blast.message")) {
+                    if (key.contains("ofchat.blast.message")) {
                         try {
                             JSONObject bm = new JSONObject(user.getProperties().get(key));
                             if (bm.getBoolean("completed") == false) {
@@ -89,6 +95,8 @@ public class MessageBlastController {
     }
 
     public JSONObject routeMessageBlast(String fromUser, MessageBlastEntity mbe, String id) {
+        Log.debug("routeMessageBlast\n" + mbe.toJSONString());
+
         JSONObject response = new JSONObject();
         /*
             {
@@ -165,57 +173,39 @@ public class MessageBlastController {
                 }
 
                 String hostname = XMPPServer.getInstance().getServerInfo().getHostname();
-                String trustedUser = JiveGlobals.getProperty("skype.trusted.user." + hostname, null);
 
                 // with trusted app, we send whole batch in order to perform
                 // a bulk presence query in a single request
 
-                if (trustedUser != null)
-                {
-                    String to = addSipUri(mbe.getRecipients().get(0));
+                mbse.setRecipientsCount(recipientsSize);
 
-                    for (int i = 1; i < recipientsSize; i++)
-                    {
-                        String target = addSipUri(mbe.getRecipients().get(i));
-                        to = to + "|" + target;
+                for (int i = 0; i < recipientsSize; i++)
+                {
+                    int c = i;
+                    mbse.setSentCount(c + 1);
+
+                    if (c % 10 == 0) {
+                        // TODO fix check pointing
+                        //checkpointState(fromUser, mbse);
+                        mbse.setMessageBlastEntity(mbe);
                     }
 
-                    mbejson.put("to", to);
-                    dispatchMessage(fromUser, mbejson);
+                    mbejson.remove("to");
+                    String recipient = mbe.getRecipients().get(0);
+                    mbejson.put("to", recipient);
+                    mbe.getRecipients().remove(recipient);
 
-                    mbse.setSentCount(recipientsCount);
+                    try {
+                        dispatchMessage(fromUser, mbejson);
 
-                } else {
-
-                    mbse.setRecipientsCount(recipientsSize);
-
-                    for (int i = 0; i < recipientsSize; i++)
-                    {
-                        int c = i;
-                        mbse.setSentCount(c + 1);
-
-                        if (c % 10 == 0) {
-                            // TODO fix check pointing
-                            //checkpointState(fromUser, mbse);
-                            mbse.setMessageBlastEntity(mbe);
-                        }
-
-                        mbejson.remove("to");
-                        String recipient = mbe.getRecipients().get(0);
-                        mbejson.put("to", recipient);
-                        mbe.getRecipients().remove(recipient);
-
-                        try {
-                            dispatchMessage(fromUser, mbejson);
-
-                        } catch (Exception e) {
-                            Log.error("MessageBlastController IQ Error MessageID:" + mbse.getId(), e.getMessage());
-                            response.put("Type", "Error");
-                            response.put("Message", "Server Error! " + e);
-                            return response;
-                        }
+                    } catch (Exception e) {
+                        Log.error("MessageBlastController IQ Error MessageID:" + mbse.getId(), e.getMessage());
+                        response.put("Type", "Error");
+                        response.put("Message", "Server Error! " + e);
+                        return response;
                     }
                 }
+
                 mbse.setMessageBlastEntity(mbe);
                 checkpointState(fromUser, mbse);
 
@@ -235,26 +225,106 @@ public class MessageBlastController {
         }
     }
 
-    private String addSipUri(String to)
+    private void dispatchMessage(String fromUser, JSONObject requestJSON) throws GroupNotFoundException
     {
-        String uri = to;
+        String from = requestJSON.getString("from");
+        String to = requestJSON.getString("to");
+        String subject = requestJSON.getString("subject");
+        String replyTo = requestJSON.getString("replyTo");
+        String importance = requestJSON.getString("importance");
+        String body = requestJSON.getString("body");
+        String bodyhtml = requestJSON.getString("bodyhtml");
+        String id = requestJSON.getString("id");
+        String sendlater = requestJSON.getString("sendlater");
 
-        if (uri.startsWith("sip:") == false && uri.indexOf("@") > -1)
+        Log.debug("dispatchMessage " + id + " " + from + " " + to + " " + subject + " " + importance + " " + replyTo + "\n" + body);
+
+        if (to.indexOf("@") > -1)
         {
-            uri = "sip:" + uri;
+            sendMessage(fromUser, from, to, subject, replyTo, body, id);
+
+        } else {
+            Group group = GroupManager.getInstance().getGroup(to);
+
+            for (JID memberJID : group.getMembers())
+            {
+                sendMessage(fromUser, from, memberJID.toString(), subject, replyTo, body, id);
+            }
+
+            for (JID memberJID : group.getAdmins())
+            {
+                sendMessage(fromUser, from, memberJID.toString(), subject, replyTo, body, id);
+            }
+
+            // message blast to bloggers group
+
+            String groupName = JiveGlobals.getProperty("solo.blog.name", "solo");
+
+            if (groupName.equals(group.getName()))
+            {
+                MeetController.getInstance().groupWebPush(groupName, body);
+            }
         }
-        return uri;
     }
 
-    private void dispatchMessage(String fromUser, JSONObject mbejson)
+    private void sendMessage(String fromUser, String from, String to, String subject, String replyTo, String body, String id)
     {
-        IQ iq = new IQ(IQ.Type.set);
-        iq.setFrom(fromUser + "@" + XMPPServer.getInstance().getServerInfo().getXMPPDomain());
-        iq.setTo("ofskype." + XMPPServer.getInstance().getServerInfo().getXMPPDomain());
-        iq.setChildElement("request", "http://traderlynk.com/protocol/messageblast").setText(mbejson.toString());
+        Message message = new Message();
+        message.setTo(to);
+        message.setFrom((replyTo == null || "".equals(replyTo)) ? from : replyTo);
+        message.setType(Message.Type.chat);
+        message.setSubject(subject);
+        message.setBody(body);
 
-        Log.debug("MessageBlastController Routing IQ Message " + mbejson.getString("id"));
-        XMPPServer.getInstance().getIQRouter().route(iq);
+        XMPPServer.getInstance().getMessageRouter().route(message);
+
+        BlastChat blastChat = new BlastChat(fromUser, id, from, to, replyTo, subject, body);
+        String key = fromUser + id + to;
+        blastChats.put(key, blastChat);
+
+        incrementRecieveCount(id, 1);
+        checkpointState(id);
+
+        if (SessionManager.getInstance().getSessions(message.getTo().getNode()).size() > 0)
+        {
+            blastChat.setMessageRead("Message Sent");
+            blastChat.setRecipientsCount();
+        }
+    }
+
+    private void incrementRecieveCount(String id, int increment)
+    {
+        MessageBlastSentEntity job = blastSents.get(id);
+
+        if (job != null) {
+            Log.debug("incrementRecieveCount job " + job.getId() + " " + job.getTitle() + " " + job.getSentCount() + " "
+                    + job.getRecieveCount() + " " + job.getReadCount() + " " + job.getRespondCount());
+
+            int count = job.getRecieveCount();
+            count = count + increment;
+            job.setRecieveCount(count);
+
+            writeState(job.getOpenfireUser(), job);
+        }
+    }
+    private void checkpointState(String id)
+    {
+        MessageBlastSentEntity job = blastSents.get(id);
+
+        if (job != null) {
+            Log.debug("incrementSentCount job " + job.getId() + " " + job.getTitle() + " " + job.getSentCount() + " "
+                    + job.getRecieveCount() + " " + job.getReadCount() + " " + job.getRespondCount());
+            writeState(job.getOpenfireUser(), job);
+        }
+    }
+
+    private void writeState(String from, MessageBlastSentEntity mbse)
+    {
+        try {
+            RawPropertyEditor.self.addProperties(from, "ofchat.blast.message." + mbse.getId(), mbse.toJSONString());
+        } catch (Exception e) {
+            Log.error("MessageBlastController Failed to checkpoint State of blast message", e.getMessage());
+        }
     }
 
     private void checkpointState(String from, MessageBlastSentEntity mbse)
@@ -264,7 +334,7 @@ public class MessageBlastController {
             // for now empty list
             mbse.getMessageBlastEntity().setRecipients(new ArrayList<String>());
 
-            RawPropertyEditor.self.addProperties(from, "belfry.blast.message." + mbse.getId(), mbse.toJSONString());
+            RawPropertyEditor.self.addProperties(from, "ofchat.blast.message." + mbse.getId(), mbse.toJSONString());
         } catch (Exception e) {
             Log.error("MessageBlastController Failed to checkpoint State of blast message", e.getMessage());
         }
@@ -277,7 +347,7 @@ public class MessageBlastController {
 
         for (String key : user.getProperties().keySet()) {
 
-            if (key.contains("belfry.blast.message")) {
+            if (key.contains("ofchat.blast.message")) {
                 JSONObject bm = new JSONObject(user.getProperties().get(key));
 
                 MessageBlastSentEntity mbse = blastSents.get(bm.getString("id"));
@@ -316,46 +386,24 @@ public class MessageBlastController {
 
     public String getSenders(String from) {
         User user = RawPropertyEditor.self.getAndCheckUser(from);
-        String senderlist = user.getProperties().get("belfry.blast.sender");
+        String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+        String senderlist = user.getProperties().get("ofchat.blast.sender");
 
-        String hostname = XMPPServer.getInstance().getServerInfo().getHostname();
-        String trustedUser = JiveGlobals.getProperty("skype.trusted.user." + hostname, null);
+        if (senderlist == null || senderlist.startsWith("{") == false)
+        {
+            JSONObject senders = new JSONObject();
+            senders.put(from + "@" + domain, user.getName());
+            senderlist = senders.toString();
+            user.getProperties().put("ofchat.blast.sender", senderlist);
+        }
+        String blastHelp = JiveGlobals.getProperty("ofchat.blast.help", "");
 
-        String blastHelp = JiveGlobals.getProperty("skype.blast.help", "");
-
+        JSONObject senders = new JSONObject(senderlist);
         JSONObject sendersJSON = new JSONObject();
         sendersJSON.put("help_url", blastHelp);
+        sendersJSON.put("senders", senders);
 
-        if (senderlist.startsWith("["))
-        {
-            JSONArray senders = new JSONArray(senderlist);
-            int i = senders.length();
-
-            if (trustedUser != null)
-            {
-                senders.put(i++, from + "@" + JiveGlobals.getProperty("skype.domain",
-                    XMPPServer.getInstance().getServerInfo().getXMPPDomain()));
-
-                senders.put(i++, trustedUser + "@" + JiveGlobals.getProperty("skype.domain",
-                    XMPPServer.getInstance().getServerInfo().getXMPPDomain()));
-            }
-            sendersJSON.put("senders", senders);
-            Log.debug("MessageBlastController Retrieving \n" + sendersJSON.toString());
-
-        } else if (senderlist.startsWith("{")) {
-            JSONObject senders = new JSONObject(senderlist);
-
-            if (trustedUser != null)
-            {
-                senders.put(from + "@" + JiveGlobals.getProperty("skype.domain",
-                    XMPPServer.getInstance().getServerInfo().getXMPPDomain()), user.getName());
-
-                senders.put(trustedUser + "@" + JiveGlobals.getProperty("skype.domain",
-                    XMPPServer.getInstance().getServerInfo().getXMPPDomain()), "Default");
-            }
-            sendersJSON.put("senders", senders);
-            Log.debug("MessageBlastController Retrieving \n" + sendersJSON.toString());
-        }
+        Log.debug("MessageBlastController Retrieving \n" + sendersJSON.toString());
         return sendersJSON.toString();
     }
 
@@ -378,7 +426,7 @@ public class MessageBlastController {
 
             if (validate != null)
             {
-                RawPropertyEditor.self.addProperties(from, "belfry.blast.sender", mbs);
+                RawPropertyEditor.self.addProperties(from, "ofchat.blast.sender", mbs);
                 returnobj.put("Type","Success");
             } else {
                 returnobj.put("Type","Error");
@@ -435,18 +483,9 @@ public class MessageBlastController {
         senders.add(username + "@" + domain);
 
         User user = RawPropertyEditor.self.getAndCheckUser(username);
-        String senderlist = user.getProperties().get("belfry.blast.sender");
+        String senderlist = user.getProperties().get("ofchat.blast.sender");
 
-        if (senderlist.startsWith("["))
-        {
-            JSONArray jaSenderlist = new JSONArray(senderlist);
-
-            for (int i = 0; i < jaSenderlist.length(); i++) {
-                String sender = jaSenderlist.getString(i);
-                senders.add(sender);
-            }
-
-        } else if (senderlist.startsWith("{")) {
+        if (senderlist.startsWith("{")) {
             JSONObject jaSenderlist = new JSONObject(senderlist);
 
             Iterator<?> keys = jaSenderlist.keys();
@@ -463,7 +502,7 @@ public class MessageBlastController {
 
     private String getDomain()
     {
-        return JiveGlobals.getProperty("skype.domain", XMPPServer.getInstance().getServerInfo().getXMPPDomain());
+        return XMPPServer.getInstance().getServerInfo().getXMPPDomain();
     }
 
     public BlastGroups fetchGroups(String username, String from) throws ServiceException
@@ -476,65 +515,38 @@ public class MessageBlastController {
         }
 
         try {
-            String fromUser = from.split("@")[0];
-
             ArrayList<BlastGroup> groups = new ArrayList<BlastGroup>();
-            ArrayList<BlastEntity> adGroups = null;
+            ArrayList<BlastEntity> adGroups = new ArrayList<BlastEntity>();
 
             User user = RawPropertyEditor.self.getAndCheckUser(username);
 
-            if (user != null && user.getProperties().containsKey("belfry.distribution.lists"))
+            if (user != null)
             {
+                Collection<Group> ofGroups = GroupManager.getInstance().getGroups(user);
                 adGroups = new ArrayList<BlastEntity>();
-                JSONArray distributionLists = new JSONArray(user.getProperties().get("belfry.distribution.lists"));
 
-                for (int i = 0; i < distributionLists.length(); i++)
+                for (Group group : ofGroups)
                 {
-                    String sip = distributionLists.getString(i);
-                    BlastEntity blastEntity = new BlastEntity(sip, sip);
+                    String description = group.getDescription();
+                    if (description == null || "".equals(description)) description = group.getName();
+                    BlastEntity blastEntity = new BlastEntity(group.getName(), description);
                     adGroups.add(blastEntity);
                 }
-            }
 
-            groups.add(new BlastGroup(adGroups, "AD Groups"));
-
-
-            Element contactList = null; // TODO
-
-            for ( Iterator i = contactList.element("Groups").elementIterator( "GroupInfo" ); i.hasNext(); )
-            {
-                Element groupInfo = (Element) i.next();
-
-                String id = groupInfo.element("Id").getText();
-                String name = groupInfo.element("Name").getText();
-
-                if ("~".equals(name)) name = "Other Contacts";
+                groups.add(new BlastGroup(adGroups, "Groups"));
 
                 ArrayList<BlastEntity> contacts = new ArrayList<BlastEntity>();
+                org.jivesoftware.openfire.roster.Roster roster = XMPPServer.getInstance().getRosterManager().getRoster(username);
 
-                for ( Iterator j = contactList.element("Contacts").elementIterator( "ContactInfo" ); j.hasNext(); )
+                for (RosterItem item : roster.getRosterItems())
                 {
-                    Element contactInfo = (Element) j.next();
-
-                    String uri = contactInfo.element("Uri").getText().substring(4);
-                    String sipName = contactInfo.element("Name").getText();
-
-                    if (sipName == null || "".equals(sipName)) sipName = uri.split("@")[0];
-
-                    for ( Iterator k = contactInfo.element("GroupIds").elementIterator( "int" ); k.hasNext(); )
-                    {
-                        String groupId = ((Element) k.next()).getText();
-
-                        if (groupId.equals(id))
-                        {
-                            BlastEntity blastEntity = new BlastEntity(uri, sipName);
-                            contacts.add(blastEntity);
-                            break;
-                        }
-                    }
+                    String description = item.getNickname();
+                    if (description == null || "".equals(description)) description = item.getJid().getNode();
+                    BlastEntity blastEntity = new BlastEntity(item.getJid().toString(), description);
+                    contacts.add(blastEntity);
                 }
 
-                groups.add(new BlastGroup(contacts, name));
+                groups.add(new BlastGroup(contacts, "Contacts"));
             }
             return new BlastGroups(groups);
 
@@ -609,7 +621,7 @@ public class MessageBlastController {
 
         Log.debug("deleteSentBlasts " + username + " " + from + " " + jobId);
 
-        RawPropertyEditor.self.deleteProperties(username, "belfry.blast.message." + jobId);
+        RawPropertyEditor.self.deleteProperties(username, "ofchat.blast.message." + jobId);
 
         ArrayList<String> keys = new ArrayList<String>();
 

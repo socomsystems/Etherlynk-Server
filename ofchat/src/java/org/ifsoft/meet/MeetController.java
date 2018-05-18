@@ -382,6 +382,58 @@ public class MeetController {
     //-------------------------------------------------------
 
     /**
+     * push a payload to all subscribed web push resources of a group
+     *
+     */
+    public boolean groupWebPush(String groupName, String payload)
+    {
+        boolean ok = false;
+
+        String publicKey = JiveGlobals.getProperty("vapid.public.key", null);
+        String privateKey = JiveGlobals.getProperty("vapid.private.key", null);
+        String domain = XMPPServer.getInstance().getServerInfo().getXMPPDomain();
+
+        try {
+            Group group = GroupManager.getInstance().getGroup(groupName);
+
+            if (group != null && publicKey != null && privateKey != null)
+            {
+                PushService pushService = new PushService()
+                    .setPublicKey(publicKey)
+                    .setPrivateKey(privateKey)
+                    .setSubject("mailto:admin@" + domain);
+
+                Log.debug("groupWebPush keys \n"  + publicKey + "\n" + privateKey);
+
+                for (String key : group.getProperties().keySet())
+                {
+                    if (key.startsWith("webpush.subscribe."))
+                    {
+                        try {
+                            Subscription subscription = new Gson().fromJson(group.getProperties().get(key), Subscription.class);
+                            Notification notification = new Notification(subscription, payload);
+                            HttpResponse response = pushService.send(notification);
+                            int statusCode = response.getStatusLine().getStatusCode();
+
+                            ok =  ok && (200 == statusCode) || (201 == statusCode);
+
+                            Log.info("groupWebPush delivered "  + statusCode + "\n" + response);
+
+                        } catch (Exception e) {
+                            Log.error("groupWebPush failed "  + "\n" + payload, e);
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e1) {
+            Log.error("groupWebPush failed "  + "\n" + payload, e1);
+        }
+
+        return ok;
+    }
+
+    /**
      * push a payload to all subscribed web push resources of a user
      *
      */

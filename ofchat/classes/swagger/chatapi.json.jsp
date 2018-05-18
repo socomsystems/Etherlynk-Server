@@ -18,6 +18,10 @@
         "description": "For assistance (Fastpath)"
     },    
     {
+        "name": "Blast",
+        "description": "Blast messages to users"
+    },    
+    {
         "name": "Chat",
         "description": "Perform presence, chat and groupchat operations"
     },
@@ -3295,84 +3299,6 @@
                 }
             }
         },
-        "/restapi/v1/meet/skype4b/{clientid}/{username}":{
-            "post":{
-        "tags": [
-            "Meet"
-        ], 
-        "summary": "Start a skype for business conversion with participants",
-        "description": "Body is a coma delimited list of participant skype uris as sip:name@domain",            
-                "consumes":[
-                ],
-                "produces":[
-                ],
-                "parameters":[
-                    {
-                        "type":"string",
-                        "name":"clientid",
-                        "in":"path",
-                        "required":true
-                    },
-                    {
-                        "type":"string",
-                        "name":"username",
-                        "in":"path",
-                        "required":true
-                    },
-                    {
-                        "name":"body",
-                        "in":"body",
-                        "required":true,
-                        "schema":{
-                            "type":"string"
-                        }
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"OK",
-                        "headers":{
-                        }
-                    },
-                    "400":{
-                        "description":"Bad Request",
-                        "headers":{
-                        }
-                    }
-                }
-            }
-        }, 
-        "/restapi/v1/meet/skype4b/{username}":{
-            "get":{
-        "tags": [
-            "Meet"
-        ], 
-        "summary": "Retrieves shared skype4b contacts",
-        "description": "",               
-                "consumes":[
-                ],
-                "produces":[
-                ],
-                "parameters":[
-                    {
-                        "type":"string",
-                        "name":"username",
-                        "in":"path",
-                        "required":true
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"OK",
-                        "headers":{
-                        },
-                        "schema":{
-                            "$ref":"#/definitions/Bookmarks"
-                        }
-                    }
-                }
-            }
-        },    
         "/restapi/v1/meet/sms/{destination}/{message}":{
             "post":{
         "tags": [
@@ -3559,6 +3485,311 @@
                 }
             }
         },        
+        "/restapi/v1/messageblast/blasts":{
+            "get":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Retrieves all message blasts queued for later execution",
+                "description": "",             
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "$ref":"#/definitions/MessageBlastEntities"
+                        }
+                    }
+                }
+            }
+        },
+        "/restapi/v1/messageblast/blasts/{jobId}":{
+            "delete":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Remove message blast queued for later execution",
+                "description": "",             
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"jobId",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
+            }
+        },        
+        "/restapi/v1/messageblast/recievers/{from}":{
+            "get":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Get message blast recievers list of  SIPURIs from contacts or by search",
+                "description": "Use query to search for any user.",             
+                "consumes":[
+                ],
+                "produces":[
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"from",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"limit",
+                        "in":"query",
+                        "required":false
+                    },
+                    {
+                        "type":"string",
+                        "name":"query",
+                        "in":"query",
+                        "required":false
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "$ref":"#/definitions/SkypeGroups"
+                        }
+                    }
+                }
+            }
+        },        
+        "/restapi/v1/messageblast/sendblast":{
+            "post":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Send Message blast",
+                "description": "Sends message blasts and returns response ok or fails and returns bad request.\n Dates should be in format yyyy-MM-dd HH:mm:ss.S (2013-09-27 00:00:00.0)",   
+                "consumes":[
+
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "in":"body",
+                        "required":true,
+                        "schema":{
+                            "$ref":"#/definitions/MessageBlastEntity"
+                        }
+                    }
+                ],
+               "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    },
+                    "400":{
+                        "description":"Bad Request",
+                        "headers":{
+                        }
+                    }
+                }
+            }
+        },
+        "/restapi/v1/messageblast/senders":{
+            "get":{
+              "tags": [
+                "Blast"
+                ], 
+                "summary": "Retrieve list of message blast senders that this users can send on behalf of",
+                "description": "Returns an array of the assigned sender uris or an object of uri/name pairs",   
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "$ref":"#/definitions/MessageBlastSendersEntity"
+                        }
+                    }
+                }
+            },
+            "post":{
+              "tags": [
+                "Blast"
+                ], 
+                "summary": "Creates/updates the list of blast senders for this user",
+                "description": "Expects an array of the assigned sender uris or an object of uri/name pairs",              
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "in":"body",
+                        "required":true,
+                        "schema":{
+                            "$ref":"#/definitions/MessageBlastSendersEntity"
+                        }
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
+            }            
+        },
+        "/restapi/v1/messageblast/sentblasts":{
+            "get":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Retrieve all message blasts that this user has sent",
+                "description": "Returns an array of the sent message blasts",   
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "$ref":"#/definitions/MessageBlastSentEntities"
+                        }
+                    }
+                }
+            }
+        },
+        "/restapi/v1/messageblast/sentblasts/{from}/{jobId}":{
+            "get":{
+              "tags": [
+                    "Blast"
+                ], 
+                "summary": "Retrieve all message blast details for the specified sender",
+                "description": "Returns an array of message blast details.\nUse filter to select specific items by a text value.\nUse type to select items with type values 'read', 'unread', 'responded' and 'error'",             
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"from",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"jobId",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"filter",
+                        "in":"query",
+                        "required":false
+                    },
+                    {
+                        "type":"string",
+                        "name":"type",
+                        "in":"query",
+                        "required":false
+                    },                    
+                    {
+                        "type":"string",
+                        "name":"start",
+                        "in":"query",
+                        "required":false
+                    },
+                    {
+                        "type":"string",
+                        "name":"count",
+                        "in":"query",
+                        "required":false
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        },
+                        "schema":{
+                            "$ref":"#/definitions/SkypeGroups"
+                        }
+                    }
+                }
+            },
+            "delete":{
+                "tags": [
+                    "Blast"
+                ], 
+                "summary": "Deletes the specified message blast for this sender",
+                "description": "",             
+                "consumes":[
+                ],
+                "produces":[
+                ],
+                "parameters":[
+                    {
+                        "type":"string",
+                        "name":"from",
+                        "in":"path",
+                        "required":true
+                    },
+                    {
+                        "type":"string",
+                        "name":"jobId",
+                        "in":"path",
+                        "required":true
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "headers":{
+                        }
+                    }
+                }
+            }          
+        },
         
         "/restapi/v1/messages/users":{
             "post":{
@@ -5166,9 +5397,6 @@
                 "ringing":{
                     "type":"boolean"
                 },
-                "skype4bId":{
-                    "type":"string"
-                },
                 "state":{
                     "type":"string"
                 },
@@ -5350,6 +5578,127 @@
                 }
             }
         },
+        "MessageBlastEntities":{
+            "properties":{
+                "blasts":{
+                    "type":"array",
+                    "items":{
+                        "$ref":"#/definitions/MessageBlastEntity"
+                    }
+                }
+            }
+        },
+        "MessageBlastEntity":{
+            "properties":{
+                "ackRequired":{
+                    "type":"boolean"
+                },
+                "crongroup":{
+                    "type":"string"
+                },
+                "cronjob":{
+                    "type":"string"
+                },
+                "crontrigger":{
+                    "type":"string"
+                },
+                "dateToSend":{
+                    "type":"string"
+                },
+                "highImportance":{
+                    "type":"boolean"
+                },
+                "message":{
+                    "type":"string"
+                },
+                "messagehtml":{
+                    "type":"string"
+                },
+                "recipients":{
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
+                },
+                "replyTo":{
+                    "type":"string"
+                },
+                "sender":{
+                    "type":"string"
+                },
+                "sendlater":{
+                    "type":"boolean"
+                },
+                "title":{
+                    "type":"string"
+                },
+                "username":{
+                    "type":"string"
+                }
+            }
+        },
+        "MessageBlastSendersEntity":{
+            "properties":{
+                "senders (array)":{
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
+                },
+                "senders (object)":{
+            "$ref":"#/definitions/MessageBlastSenderEntity"
+                }                
+            }
+        },
+        "MessageBlastSenderEntity":{
+            "properties":{
+                "sipuri":{
+                    "type":"string"
+                }
+            }
+        },        
+        "MessageBlastSentEntities":{
+            "properties":{
+                "sentBlasts":{
+                    "type":"array",
+                    "items":{
+                        "$ref":"#/definitions/MessageBlastSentEntity"
+                    }
+                }
+            }
+        },
+        "MessageBlastSentEntity":{
+            "properties":{
+                "completed":{
+                    "type":"boolean"
+                },
+                "id":{
+                    "type":"string"
+                },
+                "readCount":{
+                    "type":"integer"
+                },
+                "recieveCount":{
+                    "type":"integer"
+                },
+                "recipientsCount":{
+                    "type":"integer"
+                },
+                "respondCount":{
+                    "type":"integer"
+                },
+                "sentCount":{
+                    "type":"integer"
+                },
+                "sentDate":{
+                    "type":"string"
+                },
+                "title":{
+                    "type":"string"
+                }
+            }
+        },
+        
         "MessageEntity":{
             "properties":{
                 "body":{

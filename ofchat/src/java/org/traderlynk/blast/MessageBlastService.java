@@ -70,7 +70,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
 
             for (String propertyName : properties) {
 
-                if (propertyName.indexOf("belfry.cron.") == 0)
+                if (propertyName.indexOf("ofchat.cron.") == 0)
                 {
                     Log.debug("Loading cron job " + propertyName);
 
@@ -79,15 +79,9 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
 
                     if (error != null)
                     {
-                        deletes.add(propertyName);
+                        Log.error("MessageBlastService boot error " + error);
                     }
                 }
-            }
-
-            for (String propertyName : deletes)
-            {
-                Log.warn("Removing cron job " + propertyName);
-                JiveGlobals.deleteProperty(propertyName);
             }
 
         } catch (SchedulerException se) {
@@ -257,7 +251,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
 
             for (String propertyName : properties) {
 
-                if (propertyName.indexOf("belfry.cron." + username + ".") == 0)
+                if (propertyName.indexOf("ofchat.cron." + username + ".") == 0)
                 {
                     MessageBlastEntity messageBlast = new MessageBlastEntity(new JSONObject(JiveGlobals.getProperty(propertyName)));
                     blasts.add(messageBlast);
@@ -277,7 +271,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
     {
         try {
             String username = getEndUser();
-            String key = "belfry.cron." + username + "." + jobId;
+            String key = "ofchat.cron." + username + "." + jobId;
 
             MessageBlastEntity messageBlast = new MessageBlastEntity(new JSONObject(JiveGlobals.getProperty(key)));
 
@@ -330,7 +324,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
         String group = "blast-group-" + System.currentTimeMillis();
         String trigger = "blast-trigger-" + System.currentTimeMillis();
 
-        Log.info( "scheduleBlast " + job + " " + group + " " + trigger + " " + schedule);
+        Log.debug( "scheduleBlast " + job + " " + group + " " + trigger + " " + schedule);
 
         try {
             messageBlast.setCronjob(job);
@@ -340,7 +334,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
 
             if (response == null)
             {
-                JiveGlobals.setProperty("belfry.cron." + messageBlast.getUsername() + "." + job, messageBlast.toJSONString());
+                JiveGlobals.setProperty("ofchat.cron." + messageBlast.getUsername() + "." + job, messageBlast.toJSONString());
             }
 
             return response;
@@ -372,7 +366,7 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
             JobDetail jobDetail = newJob(MessageBlastService.class).withIdentity(job, group).build();
             String key = jobDetail.getKey().toString();
 
-            Log.info( "quartzBlast " + job + " " + group + " " + username + " " + key + " " + schedule + " " + triggerId);
+            Log.debug( "quartzBlast " + job + " " + group + " " + username + " " + key + " " + schedule + " " + triggerId);
 
             futureBlasts.put(key, messageBlast);
 
@@ -449,39 +443,45 @@ private static final Logger Log = LoggerFactory.getLogger(MessageBlastService.cl
     {
         String key = JobKey.jobKey(job, group).toString();
 
-        Log.info( "unScheduleBlast " + job + " " + group + " " + username + " " + key);
+        Log.debug( "unScheduleBlast " + job + " " + group + " " + username + " " + key);
 
         try {
+            JiveGlobals.deleteProperty("ofchat.cron." + username + "." + job);
+            futureBlasts.remove(key);
+
             if (scheduler.checkExists(JobKey.jobKey(job, group)))
             {
-                scheduler.deleteJob(JobKey.jobKey(job, group));
-                JiveGlobals.deleteProperty("belfry.cron." + username + "." + job);
-
-                return null;
-
-            } else return "Blast job " + job + " not found";
+                try {
+                    scheduler.deleteJob(JobKey.jobKey(job, group));
+                } catch (Throwable e) {
+                    Log.warn("Failed to remove quartz job...", e);
+                    return e.toString();
+                }
+            }
         }
         catch (Throwable e) {
             Log.warn("Failed to remove quartz job...", e);
             return e.toString();
         }
+        return null;
     }
 
     @Override public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException
     {
         String key = jobExecutionContext.getJobDetail().getKey().toString();
 
-        Log.info( "Quartz Execute Job...." + key);
+        Log.debug( "Quartz Execute Job...." + key);
 
         try {
-            MessageBlastEntity messageBlast = futureBlasts.remove(key);
-            messageBlastController.routeMessageBlast(messageBlast.getUsername(), messageBlast, null);
+            MessageBlastEntity messageBlast = futureBlasts.get(key);
 
-            JiveGlobals.deleteProperty("belfry.cron." + messageBlast.getUsername() + "." + messageBlast.getCronjob());
+            List<String> recipients = messageBlast.getRecipients();
+            messageBlastController.routeMessageBlast(messageBlast.getUsername(), messageBlast, null);
+            messageBlast.setRecipients(recipients);     // restore processed recipients
+
         }
         catch (Throwable e) {
             Log.error("Failed to execute quartz job...", e);
         }
     }
-
 }

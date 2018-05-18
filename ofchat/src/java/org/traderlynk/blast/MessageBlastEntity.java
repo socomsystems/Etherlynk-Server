@@ -73,26 +73,19 @@ public class MessageBlastEntity {
             this.message = jsMbe.getString("message");
             this.messagehtml = jsMbe.getString("message");
             this.ackRequired = jsMbe.getBoolean("ackRequired");
-            try {
-                this.dateToSend = jsMbe.getString("datetosend");
-                this.dateToStop = jsMbe.getString("datetostop");
-                this.sendlater = jsMbe.getBoolean("sendlater");
-            } catch (Exception e) {
-                // no date to send
-            }
             this.highImportance = jsMbe.getBoolean("highImportance");
             this.replyTo = jsMbe.getString("replyTo");
             this.sender = jsMbe.getString("sender");
 
-            try {
-                this.crontrigger = jsMbe.getString("crontrigger");
-                this.cronjob = jsMbe.getString("cronjob");
-                this.crongroup = jsMbe.getString("crongroup");
-                this.cronquartz = jsMbe.getString("cronquartz");
-                this.cronstop = jsMbe.getString("cronstop");
-            } catch (Exception e) {
-                // no date to send
-            }
+            if (jsMbe.has("datetosend")) this.dateToSend = jsMbe.getString("datetosend");
+            if (jsMbe.has("datetostop")) this.dateToStop = jsMbe.getString("datetostop");
+            if (jsMbe.has("sendlater")) this.sendlater = jsMbe.getBoolean("sendlater");
+            if (jsMbe.has("crontrigger")) this.crontrigger = jsMbe.getString("crontrigger");
+            if (jsMbe.has("cronjob")) this.cronjob = jsMbe.getString("cronjob");
+            if (jsMbe.has("crongroup")) this.crongroup = jsMbe.getString("crongroup");
+            if (jsMbe.has("cronquartz")) this.cronquartz = jsMbe.getString("cronquartz");
+            if (jsMbe.has("cronstop")) this.cronstop = jsMbe.getString("cronstop");
+
 
             List<String> recipients = new ArrayList<String>();
             try {

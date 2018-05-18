@@ -42,7 +42,7 @@ TL_MessageBlast.Request = ( function() {
         var oReq = new XMLHttpRequest();
         oReq.addEventListener("load", reqListener);
         oReq.open(mode, location.protocol + "//" + location.host + "/rest/api/restapi/v1/"+resturi);
-        oReq.setRequestHeader('Authorization', config.authorization );
+        oReq.setRequestHeader('Authorization', "Basic " + config.authorization );
         oReq.setRequestHeader('Accept', 'application/json' );
         oReq.setRequestHeader("Content-Type", "application/json");
 

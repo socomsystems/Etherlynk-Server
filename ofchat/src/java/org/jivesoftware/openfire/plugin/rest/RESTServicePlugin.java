@@ -84,7 +84,7 @@ import org.ifsoft.meet.*;
 import org.xmpp.packet.*;
 import org.dom4j.Element;
 
-
+import org.traderlynk.blast.MessageBlastService;
 
 /**
  * The Class RESTServicePlugin.
@@ -303,6 +303,10 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         bookmarkInterceptor = new BookmarkInterceptor();
         bookmarkInterceptor.start();
 
+        Log.info("Initialize MessageBlastService service");
+
+        MessageBlastService.start();
+
         executor = Executors.newCachedThreadPool();
 
         executor.submit(new Callable<Boolean>()
@@ -377,6 +381,8 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
             bookmarkInterceptor.stop();
             bookmarkInterceptor = null;
         }
+
+        MessageBlastService.stop();
 
         HttpBindManager.getInstance().removeJettyHandler(context);
         HttpBindManager.getInstance().removeJettyHandler(context2);
