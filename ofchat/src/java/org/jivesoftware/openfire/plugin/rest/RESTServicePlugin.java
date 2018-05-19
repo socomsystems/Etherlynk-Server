@@ -160,7 +160,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
 
         // If no permission key has been assigned, assign a random one.
         if ("".equals(permission)) {
-            permission = StringUtils.randomString(16);
+            permission = "Wa1l7M9NoGwcxxdX"; // default value in all web apps
             setPermission(permission);
         }
 
@@ -286,6 +286,9 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.inviteOptions", "invite, dialout, addtocall");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.chrome.extension.id", "fmgnibblgekonbgjhkjicekgacgoagmm");
         JiveGlobals.setProperty("org.jitsi.videobridge.ofmeet.min.chrome.ext.ver", "0.0.1");
+
+        JiveGlobals.setProperty("uport.clientid.etherlynk.2ofdeAidaU2mjJ5X8r1CgH2RdPb9qKVS9pc", "1b561603d69de7091fa9cee632741f7f313b4dd39bc328d38dc514bbb5f184e3");
+        JiveGlobals.setProperty("uport.clientid.pade.2p1psGHt9J5NBdPDQejSVhpsECXLxLaVQSo", "46445273c02e4c0594ef6a441ecbcd327f0f78ba58b3139e027f0b23c199ea5f");
 
         try
         {
