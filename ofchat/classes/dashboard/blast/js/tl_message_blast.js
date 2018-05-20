@@ -32,7 +32,7 @@
 
           if(e.target.className=="ms-Pivot-link is-selected"){
               if(e.target.innerHTML.indexOf("New Blast")!=-1){
-                  TL_MessageBlast.Newblast.resetfields(); 
+                  TL_MessageBlast.Newblast.resetfields();
               }
               if(e.target.innerHTML.indexOf("Pending Blasts")!=-1){
                   TL_MessageBlast.Pending.refreshsent()
@@ -46,7 +46,7 @@
     }
 
 
- 
+
 
     var PanelExamples = document.getElementsByClassName("ms-PanelExample");
     for (var i = 0; i < PanelExamples.length; i++) {
@@ -60,9 +60,9 @@
     }
 
 
-    
-   
-   
+
+
+
     function isEmpty(obj) {
         for(var prop in obj) {
             if(obj.hasOwnProperty(prop))
@@ -76,7 +76,7 @@
         var date = new Date(datetoformat);
         var localtime = date.toLocaleString('en-GB');
         return localtime;
-    }    
+    }
 
     function timeelapsed(time){
 
@@ -89,27 +89,27 @@
             day = hour * 24,
             month = day * 30,
             ms = Math.abs(d - dd);
-        
+
         var months = parseInt(ms / month, 10);
-        
+
             ms -= months * month;
-        
+
         var days = parseInt(ms / day, 10);
-        
+
             ms -= days * day;
-        
+
         var hours = parseInt(ms / hour, 10);
-        
+
             ms -= hours * hour;
 
-            
+
         var minutes = parseInt(ms / minute, 10);
 
         var seconds = parseInt((ms / minute)*60, 10);
 
-             
+
         if(minutes==0){
-          return seconds+" seconds ago"; 
+          return seconds+" seconds ago";
         }
         else if(hours==0){
           if(minutes==1){
@@ -147,7 +147,7 @@
 
 
     window.onload = function() {
-       
+
         TL_MessageBlast.Request.init();
         TL_MessageBlast.Settings.init();
         TL_MessageBlast.Inbox.init();
@@ -155,15 +155,16 @@
         TL_MessageBlast.Sent.init();
         TL_MessageBlast.Pending.init();
         TL_MessageBlast.Fileuploader.init();
+        TL_MessageBlast.Attachment.init();
         resizethescroller();
 
-       
+
     }
-    
+
     window.addEventListener('resize',function(){
         resizethescroller()
     },false);
-    
+
 
     function resizethescroller(){
 

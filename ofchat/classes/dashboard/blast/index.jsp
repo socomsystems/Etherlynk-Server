@@ -97,6 +97,7 @@
 <script src="js/tl_message_blast.newblast.js"></script>
 <script src="js/tl_message_blast.pending.js"></script>
 <script src="js/tl_message_blast.fileuploader.js"></script>
+<script src="js/tl_message_blast.attachment.js"></script>
 <script src="js/tl_message_blast.sent.js"></script>
 
 
@@ -740,10 +741,14 @@
         <input class="ms-TextField-field" id="otherparticipants" type="text" value="" placeholder="Comma separated list of additional participants">
 
         <input type="file" class="file" id="attachement" style="display: none;"/>
+        <input type="file" id="attachuploadfiles" style="display: none;" />        
 
          <button id="uploadcsv" class="ms-Button ms-Button--primary">
             <span class="ms-Button-label">Upload CSV</span>
           </button>
+         <button id="attachupload" class="ms-Button ms-Button--primary">
+            <span class="ms-Button-label">Add Attachment</span>
+          </button>          
       </div>
 
 

@@ -28,7 +28,7 @@ import java.util.Random;
  */
 public class UploadRequest extends IQ
 {
-    public static final String NAMESPACE = "urn:xmpp:http:upload:0";
+    public static final String NAMESPACE = "urn:xmpp:http:upload";
 
     private String filename;
     private long filesize;

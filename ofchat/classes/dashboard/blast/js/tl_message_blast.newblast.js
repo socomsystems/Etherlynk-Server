@@ -32,6 +32,15 @@ TL_MessageBlast.Newblast = (function () {
       TL_MessageBlast.Fileuploader.uploadcsv(e)
     })
 
+    document.getElementById('attachupload').addEventListener('click', function (e) {
+      document.getElementById('attachuploadfiles').value = ''
+      document.getElementById('attachuploadfiles').click()
+    })
+
+    document.getElementById('attachuploadfiles').addEventListener('change', function (e) {
+      TL_MessageBlast.Attachment.upload(e)
+    })
+
     document.body.addEventListener('returnreadfile', function (ev) {
       console.log('returnreadfile ', ev.detail)
       document.getElementById('otherparticipants').value = ev.detail.replace(' ', '')
