@@ -118,10 +118,11 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
     private BookmarkInterceptor bookmarkInterceptor;
     private ServletContextHandler context;
     private ServletContextHandler context2;
-    private ServletContextHandler context3;
-    private ServletContextHandler context4;
-    private ServletContextHandler context5;
 
+    private WebAppContext context3;
+    private WebAppContext context4;
+    private WebAppContext context5;
+    private WebAppContext context6;
     private WebAppContext solo;
     public File pluginDirectory;
 
@@ -273,6 +274,18 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         context5.setWelcomeFiles(new String[]{"index.jsp"});
         HttpBindManager.getInstance().addJettyHandler(context5);
 
+        Log.info("Initialize Unsecure Apps WebService ");
+
+        context6 = new WebAppContext(null, pluginDirectory.getPath() + "/classes/apps", "/apps");
+        context6.setClassLoader(this.getClass().getClassLoader());
+
+        final List<ContainerInitializer> initializers6 = new ArrayList<>();
+        initializers6.add(new ContainerInitializer(new JettyJasperInitializer(), null));
+        context6.setAttribute("org.eclipse.jetty.containerInitializers", initializers6);
+        context6.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+        context6.setWelcomeFiles(new String[]{"index.jsp"});
+        HttpBindManager.getInstance().addJettyHandler(context6);
+
         Log.info("Initialize Email Listener");
 
         EmailListener.getInstance().start();
@@ -392,6 +405,7 @@ public class RESTServicePlugin implements Plugin, SessionEventListener, Property
         HttpBindManager.getInstance().removeJettyHandler(context3);
         HttpBindManager.getInstance().removeJettyHandler(context4);
         HttpBindManager.getInstance().removeJettyHandler(context5);
+        HttpBindManager.getInstance().removeJettyHandler(context6);
 
         executor.shutdown();
         EmailListener.getInstance().stop();

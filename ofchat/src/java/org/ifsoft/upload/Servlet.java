@@ -76,7 +76,7 @@ public class Servlet extends HttpServlet
         }
         else
 
-        if (name.endsWith(".zip"))
+        if (name.endsWith(".zip") || name.endsWith(".h5p"))
         {
             Path path = Paths.get( ".", "upload." + System.currentTimeMillis() + "." + name);
 
@@ -84,7 +84,7 @@ public class Servlet extends HttpServlet
                 writeFile(path, request);
 
                 String source = path.toString();
-                String folder = name = name.substring(0, name.indexOf(".zip"));
+                String folder = name.substring(0, name.lastIndexOf("."));
                 String destination = JiveGlobals.getHomeDirectory() + File.separator + "resources" + File.separator + "spank" + File.separator + username + File.separator + folder;
 
                 Log.info( "Extracting application..." + source + " " + destination);
@@ -95,6 +95,12 @@ public class Servlet extends HttpServlet
                 Files.deleteIfExists(path);
 
                 String bookmarkValue = JiveGlobals.getProperty("ofmeet.root.url.secure", "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443")) + "/" + username + "/" + folder;
+
+                if (name.endsWith(".h5p"))
+                {
+                    bookmarkValue = JiveGlobals.getProperty("ofmeet.root.url.secure", "https://" + XMPPServer.getInstance().getServerInfo().getHostname() + ":" + JiveGlobals.getProperty("httpbind.port.secure", "7443")) + "/apps/h5p/?path=" + username + "/" + folder;
+                }
+
                 long id = -1;
 
                 for (Bookmark bookmark : BookmarkManager.getBookmarks())
