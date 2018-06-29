@@ -764,6 +764,8 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
 
                 SipAccount sipAccount = SipAccountDAO.getAccountByUser(userId);
 
+                Log.debug("doHelper - processing " + userId + " " + name);
+
                 if (sipAccount == null)
                 {
                     // create one
@@ -776,6 +778,8 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
                             extension = getNextExten(extension);
                         }
                     }
+
+                    Log.debug("doHelper - creating " + extension);
 
                     List<String> lines = Arrays.asList("<include>", "<user id=\"" + extension + "\">", "<params>", "<param name=\"password\" value=\"" + password + "\"/>", "<param name=\"vm-password\" value=\"" + password + "\"/>", "</params>", "<variables>", "<variable name=\"toll_allow\" value=\"domestic,international,local\"/>", "<variable name=\"accountcode\" value=\"" + extension + "\"/>", "<variable name=\"user_context\" value=\"default\"/>", "<variable name=\"effective_caller_id_name\" value=\"" + name + "\"/>", "<variable name=\"effective_caller_id_number\" value=\"" + extension + "\"/>", "<variable name=\"outbound_caller_id_name\" value=\"$${outbound_caller_name}\"/>", "<variable name=\"outbound_caller_id_number\" value=\"$${outbound_caller_id}\"/>", "<variable name=\"callgroup\" value=\"default\"/>", "</variables>", "</user>", "</include>");
                     java.nio.file.Path file = java.nio.file.Paths.get(fsConfigPath + File.separator + "directory" + File.separator + "default" + File.separator + extension + ".xml");
@@ -828,6 +832,7 @@ public class OfSwitchPlugin implements Plugin, ClusterEventListener, IEslEventLi
             Files.write(file, groupLines, Charset.forName("UTF-8"));
 
         } catch (Exception e) {
+            Log.error("doHelper failed", e);
             response = e.toString();
         }
 
